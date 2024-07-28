@@ -1,0 +1,30 @@
+{
+    "name": "nickklein/habits",
+    "description": "habits package to speed up life",
+    "autoload": {
+        "psr-4": {
+            "NickKlein\\Dropbox\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Nick Klein",
+            "email": "1294247+nickklein@users.noreply.github.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^6.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^4.0",
+        "phpunit/phpunit": "^8.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "NickKlein\\Habits\\HabitsServiceProvider"
+            ],
+        }
+    }
+}
