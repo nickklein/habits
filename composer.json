@@ -24,7 +24,7 @@
         "laravel": {
             "providers": [
                 "NickKlein\\Habits\\HabitsServiceProvider"
-            ],
+            ]
         }
     }
 }
