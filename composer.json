@@ -3,7 +3,7 @@
     "description": "habits package to speed up life",
     "autoload": {
         "psr-4": {
-            "NickKlein\\Dropbox\\": "src/"
+            "NickKlein\\Habits\\": "src/"
         }
     },
     "authors": [
