@@ -3,6 +3,7 @@
 namespace NickKlein\Habits;
 
 use Illuminate\Support\ServiceProvider;
+use NickKlein\Habits\Commands\RunSeederCommand;
 use Illuminate\Contracts\Routing\Registrar as Router;
 
 class HabitsServiceProvider extends ServiceProvider
@@ -34,7 +35,7 @@ class HabitsServiceProvider extends ServiceProvider
         }
 
         $this->commands([
-            //
+            RunSeederCommand::class
         ]);
     }
 }
