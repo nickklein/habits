@@ -1,19 +1,16 @@
 <?php
 
-namespace Tests\Unit;
+namespace NickKlein\Habits\Tests;
 
-use App\Models\Habit;
-use App\Models\HabitUser;
-use App\Models\User;
+use NickKlein\Habits\Models\Habit;
+use NickKlein\Habits\Models\HabitUser;
+use NickKlein\Habits\Tests\TestModels\User;
 use App\Repositories\HabitInsightRepository;
 use App\Services\HabitInsightService;
 use App\Services\HabitService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use Mockery;
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use NickKlein\Habits\Tests\TestCase;
 
 class HabitInsightServiceTest extends TestCase
 {

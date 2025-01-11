@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace NickKlein\Habits\Services;
 
 use NickKlein\Habits\Models\Habit;
 use NickKlein\Habits\Models\HabitTime;

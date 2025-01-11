@@ -1,15 +1,15 @@
 <?php
 
-namespace Tests\Unit;
+namespace NickKlein\Habits\Tests;
 
 use App\Http\Controllers\HabitController;
-use App\Models\User;
-use App\Models\Habit;
-use App\Models\HabitTime;
+use NickKlein\Habits\Models\User;
+use NickKlein\Habits\Models\Habit;
+use NickKlein\Habits\Models\HabitTime;
 use App\Services\HabitService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 use Illuminate\Http\JsonResponse;
+use NickKlein\Habits\Tests\TestCase;
 
 class HabitControllerTest extends TestCase
 {

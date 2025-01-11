@@ -2,11 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Models\HabitTime;
+use NickKlein\Habits\Models\HabitTime;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\HabitTime>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\NickKlein\Habits\Models\HabitTime>
  */
 class HabitTimeFactory extends Factory
 {

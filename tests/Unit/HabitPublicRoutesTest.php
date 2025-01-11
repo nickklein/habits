@@ -1,13 +1,13 @@
 <?php
 
-namespace Tests\Unit;
+namespace NickKlein\Habits\Tests;
 
 use App\Http\Controllers\Public\HabitTimeController;
-use App\Models\HabitTime;
-use App\Models\User;
+use NickKlein\Habits\Models\HabitTime;
+use NickKlein\Habits\Tests\TestModels\User;
 use App\Repositories\HabitInsightRepository;
 use App\Services\HabitInsightService;
-use Tests\TestCase;
+use NickKlein\Habits\Tests\TestCase;
 use Mockery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;

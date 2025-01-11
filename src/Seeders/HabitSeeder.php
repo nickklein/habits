@@ -2,7 +2,7 @@
 
 namespace NickKlein\Habits\Seeders;
 
-use App\Models\Habit;
+use NickKlein\Habits\Models\Habit;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 

@@ -2,12 +2,13 @@
 
 namespace NickKlein\Habits\Controllers;
 
-use App\Models\Habit;
+use Illuminate\Http\Request;
+use NickKlein\Habits\Models\Habit;
+use App\Http\Controllers\Controller;
 use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 

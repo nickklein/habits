@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace NickKlein\Habits\Services;
 
 use NickKlein\Habits\Models\Habit;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
-use App\Repositories\HabitInsightRepository;
+use NickKlein\Habits\Repositories\HabitInsightRepository;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -13,15 +13,17 @@ class HabitInsightService
 {
     const HABIT_COLOR_INDEX = [
         1 => 'blue',
-        2 => 'green',
-        3 => 'yellow',
+        2 => 'gray',
+        3 => 'orange',
         4 => 'purple',
-        5 => 'red',
-        6 => 'indigo',
+        5 => 'green',
+        6 => 'green',
+        /* 5 => 'red', */
+        /* 6 => 'indigo', */
         7 => 'pink',
-        8 => 'teal',
-        9 => 'orange',
-        10 => 'gray',
+        8 => 'gray',
+        9 => 'yellow',
+        10 => 'teal',
         11 => 'lime',
         12 => 'amber',
         13 => 'cyan',
@@ -163,12 +165,12 @@ class HabitInsightService
     }
 
     /**
-     * Manage Habit Time by turning it on/off 
+     * Manage Habit Time by turning it on/off
      *
      * @param integer $habitId
      * @param integer $userId
      * @return boolean
-     * 
+     *
      * @todo dependency injection for HabitInsightRepository
      */
     public function manageHabitTime(int $habitId, int $userId, string $status, HabitInsightRepository $habitInsightRepository): bool

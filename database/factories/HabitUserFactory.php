@@ -17,8 +17,11 @@ class HabitUserFactory extends Factory
      */
     public function definition(): array
     {
+        $user = config('auth.providers.users.model');
+        $user = $user::InRandomOrder()->first()->id;
+
         return [
-            'user_id' => User::InRandomOrder()->first()->id,
+            'user_id' => $user,
             'habit_id' => $this->faker->numberBetween(1, 8),
             'streak_time_goal' => $this->faker->numberBetween(60 * 5, 3600 * 5),
             'streak_time_type' => $this->faker->randomElement(['daily', 'weekly', 'monthly']),

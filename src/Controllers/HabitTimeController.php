@@ -1,114 +1,230 @@
 <?php
 
-namespace NickKlein\Habits\Controllers\Public;
+namespace NickKlein\Habits\Controllers;
 
-use App\Http\Controllers\Controller;
+use NickKlein\Habits\Requests\HabitRequests;
+use NickKlein\Habits\Requests\HabitTimeRequests;
+use NickKlein\Habits\Requests\HabitTimerRequests;
+use NickKlein\Habits\Requests\TagHabitTimeRequest;
+use App\Http\Requests\TagRequest;
+use App\Http\Resources\TagsResource;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
+use App\Repositories\TagsRepository;
 use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
+use App\Services\LogsService;
+use App\Services\TagsService;
+use Exception;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
+use App\Http\Controllers\Controller;
 
 class HabitTimeController extends Controller
 {
-    /**
-     * Fetch Daily Notifications (PUBLIC API)
-     * @todo obviously better to use oauth if this was a real app
-     * @param integer $userId
-     * @param HabitService $habitService
-     * @return Response
-     */
-    public function getDailyNotification(int $userId, HabitInsightService $habitInsightService)
+    public function transactions(HabitService $service, HabitInsightRepository $insightRepository)
     {
-        $averageTime = $habitInsightService->generateDailyNotification($userId);
-
-        return response()->json([
-            'notification' => $averageTime,
-        ], Response::HTTP_OK);
+        return Inertia::render('Habits/Transactions', [
+            'lists' => $service->getTransactions(),
+            'anyHabitActive' => $insightRepository->anyHabitActive(Auth::user()->id),
+        ]);
     }
 
-    /**
-     * Get Weekly Notifications (PUBLIC API)
-     * @todo obviously better to use oauth if this was a real app
-     * @param integer $userId
-     * @param HabitService $habitService
-     * @return Response
-     */
-    public function getWeeklyNotifications(int $userId, HabitInsightService $habitInsightService)
+    public function create(HabitService $habitService)
     {
-        $averageTime = $habitInsightService->generateWeeklyNotifications($userId);
-
-        return response()->json([
-            'notification' => $averageTime,
-        ], Response::HTTP_OK);
+        return Inertia::render('Habits/Add', [
+            'habits' => $habitService->getHabits(),
+            'times' => [
+                'start_date' => date('Y-m-d'),
+                'start_time' => date('H:i:s'),
+                'end_date' => date('Y-m-d', strtotime('+15 minutes')),
+                'end_time' => date('H:i:s', strtotime('+15 minutes')),
+            ]
+        ]);
     }
     /**
-     * Tracks the time of a habit (PUBLIC API)
-     * @todo obviously better to use oauth if this was a real app
+     * Tracks the time of a habit (APP)
+     *
      * @param integer $userId
      * @param integer $habitId
      * @param HabitService $habitService
-     * @param HabitInsightRepository $habitInsightRepository
-     * @return Response
+     * @return void
      */
-    public function store(int $userId, int $habitTimeId, string $status, HabitInsightService $habitInsightService, HabitInsightRepository $habitInsightRepository)
+    public function storeHabitTimes(HabitTimeRequests $request, HabitService $habitService)
     {
-        $response = $habitInsightService->manageHabitTime($habitTimeId, $userId, $status, $habitInsightRepository);
+        $fields = $request->validated();
+        $response = $habitService->storeHabitTime(Auth::user()->id, $fields['habit_id'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
         if ($response) {
-            return response()->json([
-                'status' => 'success',
+            return back()->with([
                 'message' => 'Habit time added successfully',
             ], Response::HTTP_OK);
         }
 
-        return response()->json([
-            'status' => 'error',
+        return back()->with([
             'message' => 'Habit time not added',
         ], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
     /**
-     * Ends all timers for a user (PUBLIC API)
-     * @todo obviously better to use oauth if this was a real app
-     * @param integer $userId
-     * @param HabitInsightRepository $habitInsightRepository
-     * @return void
+     * Create destroy function that checks if user has permission to delete habit time
+     *
+     * @param integer $habitTimeId
+     * @param HabitService $service
+     * @return JSONResponse
      */
-    public function endTimers(int $userId, HabitInsightRepository $habitInsightRepository)
+    public function destroy(int $habitTimeId, HabitService $service)
     {
-        $habitIds = request()->has('ids') ? explode(',', request()->get('ids')) : [];
-        $habitInsightRepository->endAllActiveHabits($userId, $habitIds);
+        $response = $service->deleteHabitTime($habitTimeId, Auth::user()->id);
+        if ($response) {
+            return response()->json([
+                'message' => 'Habit deleted successfully',
+            ]);
+        }
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Habit timers ended successfully',
+            'message' => 'Habit not deleted',
+        ]);
+    }
+
+    /**
+     * Edit Habit Times page
+     *
+     * @param integer $habitTimesId
+     * @param HabitService $service
+     * @return Inertia
+     */
+    public function editHabitTimes(int $habitTimesId, HabitService $service, TagsRepository $tagsRepository)
+    {
+        return Inertia::render('Habits/Edit', [
+            'item' => $service->getHabitTime(Auth::user()->id, $habitTimesId),
+            'habits' => $service->getHabits(),
+            'tags' => $tagsRepository->listHabitTimesTags($habitTimesId, Auth::user()->id),
+            'tagsAddUrl' => route('habits.transactions.edit.add-tag', ['habitTimesId' => $habitTimesId]),
+            'tagsRemoveUrl' => route('habits.transactions.edit.remove-tag', ['habitTimesId' => $habitTimesId]),
+        ]);
+    }
+
+    /**
+     * Update Habit Times
+     *
+     * @param integer $habitTimeId
+     * @param HabitTimeRequests $request
+     * @param HabitService $service
+     */
+    public function updateHabitTimes(int $habitTimeId, HabitTimeRequests $request, HabitService $service)
+    {
+        $fields = $request->validated();
+        $response = $service->updateHabitTime($habitTimeId, Auth::user()->id, $fields['habit_id'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
+        if ($response) {
+            return back()->with(['message' => __('Habit updated successfully')], 200);
+        }
+
+        return back()->with(['message' => __('Habit not updated')], 403);
+    }
+
+    /**
+     * Add Timer page
+     *
+     * @param HabitService $habitService
+     * @return Inertia
+     */
+    public function timerCreate(HabitService $habitService)
+    {
+        return Inertia::render('Habits/AddTimer', [
+            'habits' => $habitService->getHabits(),
+        ]);
+    }
+
+    /**
+     * Create Habit Timer Store Function
+     *
+     * @param HabitTimerRequests $request
+     * @param HabitInsightService $insightService
+     * @param HabitInsightRepository $insightRepository
+     */
+    public function timerStore(HabitTimerRequests $request, HabitInsightService $insightService, HabitInsightRepository $insightRepository)
+    {
+        $fields = $request->validated();
+        $response = $insightService->manageHabitTime($fields['habit_id'], Auth::user()->id, 'on', $insightRepository);
+        if ($response) {
+            return redirect()->route('habits.transactions')->with([
+                'message' => 'Habit time added successfully',
+            ], Response::HTTP_OK);
+        }
+
+        return redirect()->route('habits.transactions')->with([
+            'message' => 'Habit time not added',
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * End Habit Timer
+     *
+     * @param HabitInsightRepository $insightRepository
+     * @return void
+     */
+    public function timerEnd(HabitInsightRepository $insightRepository)
+    {
+        $insightRepository->endAllActiveHabits(Auth::user()->id);
+
+        return redirect()->route('habits.transactions')->with([
+            'message' => 'Habit time ended successfully',
         ], Response::HTTP_OK);
     }
 
 
     /**
-     * Check if a habit is active (PUBLIC API)
-     *  @todo obviously better to use oauth if this was a real app
-     * @param integer $habitId
-     * @param integer $userId
-     * @param HabitInsightRepository $habitInsightRepository
-     * @return boolean
+     * Get Tags for habit times
+     *
+     * @param integer $habitTimeId
+     * @param TagsRepository $tagsRepository
+     * @return void
      */
-    public function isHabitActive(int $userId, HabitInsightService $habitInsightService, HabitInsightRepository $habitInsightRepository)
+    public function getTags(int $habitTimeId, TagsRepository $tagsRepository)
     {
-        if (!request()->has('ids')) {
-            return response()->json([
-                'status' => 'error',
-            ], Response::HTTP_NOT_FOUND);
+        $response = $tagsRepository->listHabitTimesTags(Auth::user()->id, $habitTimeId);
+
+        return response()->json($response);
+    }
+
+    /**
+     * Add Tag for habit times
+     *
+     * @param TagRequest $request
+     * @param TagsRepository $tagsRepository
+     * @return JsonResponse
+     */
+    public function addTag(TagRequest $request, TagsRepository $tagsRepository): JsonResponse
+    {
+        $fields = $request->validated();
+
+        $response = $tagsRepository->createHabitTimeTag(Auth::user()->id, $request->route('habitTimesId'), $fields['tagName']);
+
+        return response()->json($response);
+    }
+
+    /**
+     * Destroy Tag for habit times
+     *
+     * @param TagRequest $request
+     * @param TagsService $service
+     * @return JsonResponse
+     */
+    public function removeTag(TagRequest $request, TagsService $tagsService, LogsService $logService)
+    {
+        try {
+            $fields = $request->validated();
+
+            $response = $tagsService->destroyHabitTimesTag(Auth::user()->id, $request->route('habitTimesId'), $fields['tagName'], $logService);
+        } catch (Exception $e) {
+            // Log the exception using the LogsService
+
+            $logService->handle("Error", "Exception occurred in removeTag: " . $e->getMessage());
+            return response()->json(['action' => 'error', 'message' => 'An error occurred while processing the request.']);
         }
 
-        $habitIds = explode(',', request()->get('ids'));
-
-        $activeState = $habitInsightService->checkIfHabitsAreActive($habitIds, $userId, $habitInsightRepository);
-
-        return response()->json([
-            'status' => 'success',
-            'is_active' => $activeState,
-        ], Response::HTTP_OK);
+        return response()->json($response);
     }
 }

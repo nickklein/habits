@@ -1,18 +1,18 @@
 <?php
 
-namespace Tests\Unit\Habits;
+namespace NickKlein\Habits\Tests;
 
-use Tests\TestCase;
-use App\Http\Controllers\HabitTimeController;
-use App\Http\Requests\HabitTimeRequests;
-use App\Models\HabitTime;
-use App\Models\User;
-use App\Services\HabitService;
+use NickKlein\Habits\Tests\TestModels\User;
+use NickKlein\Habits\Models\HabitTime;
+use NickKlein\Habits\Controllers\HabitTimeController;
+use NickKlein\Habits\Requests\HabitTimeRequests;
+use NickKlein\Habits\Services\HabitService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
 use Mockery;
+use NickKlein\Habits\Tests\TestCase;
+
 
 class HabitTimeControllerTest extends TestCase
 {

@@ -1,11 +1,11 @@
 <?php
 
-namespace Tests\Unit;
+namespace NickKlein\Habits\Tests;
 
-use App\Models\HabitTime;
-use App\Repositories\HabitInsightRepository;
+use NickKlein\Habits\Models\HabitTime;
+use NickKlein\Habits\Repositories\HabitInsightRepository;
 use Carbon\Carbon;
-use Tests\TestCase;
+use NickKlein\Habits\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class HabitInsightRepositoryTest extends TestCase
