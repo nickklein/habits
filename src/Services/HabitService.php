@@ -95,13 +95,14 @@ class HabitService
 
     /**
      * Get specific Habit
-     *
+     * @TODO: Move to Repository
      * @param integer $habitId
      * @return HabitUser
      */
     public function getHabit(int $habitId, int $userId)
     {
-        return HabitUser::with(['habit', 'children', 'parent'])->where('habit_id', $habitId)
+        return HabitUser::with(['habit', 'children', 'parent'])
+            ->where('habit_id', $habitId)
             ->where('user_id', $userId)
             ->first();
     }
@@ -109,11 +110,13 @@ class HabitService
     /**
      * Get habits
      *
+     * @TODO: Move to Repository
      * @return void
      */
     public function getHabits()
     {
         return Habit::select(DB::raw('habit_id AS value'), DB::raw('name AS label'))
+            ->orderBy('name')
             ->get();
     }
 
