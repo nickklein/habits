@@ -2,11 +2,11 @@
 
 namespace NickKlein\Habits\Tests;
 
-use App\Http\Controllers\Public\HabitTimeController;
+use NickKLein\Habits\Controllers\Public\HabitTimeController;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Tests\TestModels\User;
-use App\Repositories\HabitInsightRepository;
-use App\Services\HabitInsightService;
+use NickKlein\Habits\Repositories\HabitInsightRepository;
+use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Tests\TestCase;
 use Mockery;
 use Illuminate\Foundation\Testing\RefreshDatabase;

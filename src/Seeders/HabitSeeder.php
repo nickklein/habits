@@ -3,18 +3,24 @@
 namespace NickKlein\Habits\Seeders;
 
 use NickKlein\Habits\Models\Habit;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use Faker\Factory as Faker;
 
-class HabitSeeder extends Seeder
+class HabitSeeder
 {
     /**
-     * Run the database seeds.
+     *  Seed Habit data
      *
      * @return void
      */
-    public function run()
+    public function run(int $count = 1)
     {
-        Habit::factory()->count(8)->create();
+        $faker = Faker::create();
+        Habit::unguard();
+        for($row = 0; $row <= $count; $row++) {
+            Habit::create([
+                'name' => $faker->name,
+            ]);
+        }
+        Habit::reguard();
     }
 }

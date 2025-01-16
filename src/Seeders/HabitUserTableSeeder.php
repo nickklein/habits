@@ -2,21 +2,51 @@
 
 namespace NickKlein\Habits\Seeders;
 
-use NickKlein\Habits\Habit;
-use NickKlein\Habits\HabitUser;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
+use NickKlein\Habits\Models\Habit;
+use NickKlein\Habits\Models\HabitUser;
+use Faker\Factory as Faker;
 
-class HabitUserTableSeeder extends Seeder
+class HabitUserTableSeeder
 {
     /**
      * Run the database seeds.
      */
-    public function run(): void
+    public function run(array $habitIds = []): void
     {
-        $habits = Habit::all();
-        foreach ($habits as $habit) {
-            HabitUser::factory()->create(['habit_id' => $habit->habit_id]);
+        if (empty($habitIds)) {
+            $habits = Habit::all();
+            $this->generateHabitUser($habits);
+
+            return;
         }
+
+        $habits = Habit::whereIn('habit_id', $habitIds)->get();
+        $this->generateHabitUser($habits);
+
+        return;
+    }
+
+    private function generateHabitUser(Collection $habits)
+    {
+        HabitUser::unguard();
+        $faker = Faker::create();
+        $user = config('auth.providers.users.model');
+        $user = User::InRandomOrder()->first();
+
+        foreach ($habits as $habit) {
+            HabitUser::create(
+                [
+                    'habit_id' => $habit->habit_id,
+                    'user_id' => $user->id ?? 1,
+                    'habit_id' => $faker->numberBetween(1, 8),
+                    'streak_time_goal' => $faker->numberBetween(60 * 5, 3600 * 5),
+                    'streak_time_type' => $faker->randomElement(['daily', 'weekly', 'monthly']),
+                    'streak_type' => $faker->randomElement(['time', 'count']),
+                ]
+            );
+        }
+        HabitUser::reguard();
     }
 }

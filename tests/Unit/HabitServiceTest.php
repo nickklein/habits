@@ -2,12 +2,12 @@
 
 namespace NickKlein\Habits\Tests;
 
+use Carbon\Carbon;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Tests\TestModels\User;
-use App\Repositories\HabitInsightRepository;
-use App\Services\HabitInsightService;
-use App\Services\HabitService;
-use Carbon\Carbon;
+use NickKlein\Habits\Repositories\HabitInsightRepository;
+use NickKlein\Habits\Services\HabitInsightService;
+use NickKlein\Habits\Services\HabitService;
 use NickKlein\Habits\Tests\TestCase;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 

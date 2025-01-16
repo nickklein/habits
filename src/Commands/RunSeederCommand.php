@@ -7,6 +7,7 @@ use NickKlein\Habits\Seeders\HabitTimeSeeder;
 use NickKlein\Habits\Seeders\HabitUserTableSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
+use NickKlein\Habits\Models\HabitUser;
 
 class RunSeederCommand extends Command
 {
@@ -29,7 +30,7 @@ class RunSeederCommand extends Command
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(public HabitSeeder $habitSeeder, public HabitTimeSeeder $habitTimeSeeder, public HabitUserTableSeeder $habitUserSeeder)
     {
         parent::__construct();
     }
@@ -41,13 +42,13 @@ class RunSeederCommand extends Command
      */
     public function handle()
     {
-        Artisan::call('db:seed', ['--class' => HabitSeeder::class]);
-        $this->info('HabitSeeder executed successfully.');
+        // Add habits
+        $this->habitSeeder->run(8);
 
-        Artisan::call('db:seed', ['--class' => HabitTimeSeeder::class]);
-        $this->info('HabitTimeSeeder executed successfully.');
+        // Add habit times
+        $this->habitTimeSeeder->run([], 15);
 
-        Artisan::call('db:seed', ['--class' => HabitUserTableSeeder::class]);
-        $this->info('HabitUserTableSeeder executed successfully.');
+        // connect relationships
+        $this->habitUserSeeder->run([]);
     }
 }

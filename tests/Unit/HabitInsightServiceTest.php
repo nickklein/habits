@@ -5,12 +5,14 @@ namespace NickKlein\Habits\Tests;
 use NickKlein\Habits\Models\Habit;
 use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Tests\TestModels\User;
-use App\Repositories\HabitInsightRepository;
-use App\Services\HabitInsightService;
-use App\Services\HabitService;
+use NickKlein\Habits\Repositories\HabitInsightRepository;
+use NickKlein\Habits\Services\HabitInsightService;
+use NickKlein\Habits\Services\HabitService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use NickKlein\Habits\Tests\TestCase;
+use Faker\Factory as Faker;
+use NickKlein\Habits\Seeders\HabitUserTableSeeder;
 
 class HabitInsightServiceTest extends TestCase
 {
@@ -20,7 +22,22 @@ class HabitInsightServiceTest extends TestCase
     {
         parent::setUp();
 
-        $user = User::factory()->create();
+        $faker = Faker::create();
+        $user = User::create([
+            'name' => $faker->name,
+            'email' => $faker->unique()->safeEmail,
+            'email_verified_at' => now(),
+            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+            'remember_token' => '23123', 
+        ]);
+        $this->habitUser = HabitUser::create([
+            'habit_id' => $habit->habit_id,
+            'user_id' => $user->id ?? 1,
+            'habit_id' => $faker->numberBetween(1, 8),
+            'streak_time_goal' => $faker->numberBetween(60 * 5, 3600 * 5),
+            'streak_time_type' => $faker->randomElement(['daily', 'weekly', 'monthly']),
+            'streak_type' => $faker->randomElement(['time', 'count']),
+        ]);
         $this->habitUser = HabitUser::factory()->create(['user_id' => $user->id]);
     }
 

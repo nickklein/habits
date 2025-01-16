@@ -4,7 +4,7 @@ import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 import EditHabitTimeForm from './partials/EditHabitTimeForm';
-import Tags from '../Partials/Tags';
+import Tags from '@/Pages/Partials/Tags';
 
 
 export default function Edit(props) {

@@ -20,6 +20,13 @@ class HabitsServiceProvider extends ServiceProvider
 
         // Register migrations
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations/');
+        $this->loadFactoriesFrom(__DIR__ . '/../database/factories/');
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__ . '/../resources/js' => resource_path('js/Pages/Habits'),
+            ], 'assets');
+        }
 
         $this->commands([
             RunSeederCommand::class,
