@@ -33,7 +33,7 @@ class HabitUserTableSeeder
         HabitUser::unguard();
         $faker = Faker::create();
         $user = config('auth.providers.users.model');
-        $user = User::InRandomOrder()->first();
+        $user = $user::InRandomOrder()->first();
 
         foreach ($habits as $habit) {
             HabitUser::create(

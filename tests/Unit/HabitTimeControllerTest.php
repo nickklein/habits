@@ -8,7 +8,6 @@ use NickKlein\Habits\Controllers\HabitTimeController;
 use NickKlein\Habits\Requests\HabitTimeRequests;
 use NickKlein\Habits\Services\HabitService;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\JsonResponse;
 use Mockery;
 use NickKlein\Habits\Tests\TestCase;
@@ -16,24 +15,24 @@ use NickKlein\Habits\Tests\TestCase;
 
 class HabitTimeControllerTest extends TestCase
 {
-    use RefreshDatabase;
-
     public function testDestroyMethodSuccessfully()
     {
         // Arrange: Create a user and a habit for the user
-        $user = User::factory()->create();
-        $habitTime = HabitTime::factory()->create(['user_id' => $user->id]);
-        $service = $this->createMock(HabitService::class);
+        $user = User::find(1);
+        $habitTime = HabitTime::where('user_id', $user->id)->first();
+        $service = Mockery::mock(HabitService::class);
+        $this->app->instance(HabitService::class, $service);
 
         // Assume the user can delete the habit
-        $service->expects($this->once())
-            ->method('deleteHabitTime')
+        $service
+            ->shouldReceive('deleteHabitTime')
+            ->once()
             ->with($habitTime->id, $user->id)
-            ->willReturn(true);
+            ->andReturn(true);
 
         // Act: Call the destroy method on the controller
-        $controller = new HabitTimeController;
         $this->actingAs($user);
+        $controller = $this->app->make(HabitTimeController::class);
         $response = $controller->destroy($habitTime->id, $service);
 
         // Assert: Check the response
@@ -44,18 +43,20 @@ class HabitTimeControllerTest extends TestCase
     public function testDestroyMethodFailed()
     {
         // Arrange: Create a user and a habit not owned by the user
-        $user = User::factory()->create();
-        $habitTime = HabitTime::factory()->create(['user_id' => $user->id]);
-        $service = $this->createMock(HabitService::class);
+        $user = User::find(1);
+        $habitTime = HabitTime::where('user_id', $user->id)->first();
+        $service = Mockery::mock(HabitService::class);
+        $this->app->instance(HabitService::class, $service);
 
         // Assume the user cannot delete the habit
-        $service->expects($this->once())
-            ->method('deleteHabitTime')
+        $service
+            ->shouldReceive('deleteHabitTime')
             ->with($habitTime->id, $user->id)
-            ->willReturn(false);
+            ->andReturn(false);
 
         // Act: Call the destroy method on the controller
         $controller = new HabitTimeController;
+        $controller = $this->app->make(HabitTimeController::class);
         $this->actingAs($user);
         $response = $controller->destroy($habitTime->id, $service);
 
@@ -66,38 +67,41 @@ class HabitTimeControllerTest extends TestCase
 
     public function testUpdateHabitTimeFailedValidation()
     {
-        $user = User::factory()->create();
+        $user = User::find(1);
         $this->actingAs($user);
 
-        $habitTime = HabitTime::factory()->create(['user_id' => $user->id]);
+        $habitTime = HabitTime::where('user_id', $user->id)->first();
 
         $response = $this->put(route('habits.transactions.update', $habitTime->id), []);
 
         $response->assertSessionHasErrors(['habit_id', 'start_time', 'end_time']);
     }
-
-    /**
-     *  Test if test update habit time failed
-     */
+    /**/
+    /* /** */
+    /*  *  Test if test update habit time failed */
+    /*  */
     public function testUpdateHabitTimeFailed()
     {
         // Arrange: Create a user and a habit not owned by the user
-        $user = User::factory()->create();
+        //
+        $user = User::find(1);
         $this->actingAs($user);
-        $habitTime = HabitTime::factory()->create(['user_id' => $user->id]);
+        $habitTime = HabitTime::where('user_id', $user->id)->first();
 
         $startDate = Carbon::parse($habitTime->start_time)->format('Y-m-d');
         $startTime = Carbon::parse($habitTime->start_time)->format('H:i:s');
         $endDate = Carbon::parse($habitTime->end_time)->format('Y-m-d');
         $endTime = Carbon::parse($habitTime->end_time)->format('H:i:s');
 
-        $service = $this->createMock(HabitService::class);
-        $service->expects($this->once())
-            ->method('updateHabitTime')
+        $service = Mockery::mock(HabitService::class);
+        $this->app->instance(HabitService::class, $service);
+        $service
+            ->shouldReceive('updateHabitTime')
             ->with($habitTime->id, $user->id, $habitTime->habit_id, $startDate, $startTime, $endDate, $endTime)
-            ->willReturn(false);
+            ->andReturn(false);
 
-        $controller = new HabitTimeController;
+
+        $controller = $this->app->make(HabitTimeController::class);
         $requests = Mockery::mock(HabitTimeRequests::class);
         $requests->shouldReceive('validated')->once()->andReturn([
             'habit_id' => $habitTime->habit_id,
@@ -115,26 +119,27 @@ class HabitTimeControllerTest extends TestCase
 
     /**
      *  Test if test update habit time successfully saved
-     */
+    **/
     public function testUpdateHabitTimeSuccess()
     {
         // Arrange: Create a user and a habit not owned by the user
-        $user = User::factory()->create();
+        $user = User::find(1);
         $this->actingAs($user);
-        $habitTime = HabitTime::factory()->create(['user_id' => $user->id]);
+        $habitTime = HabitTime::where('id', $user->id)->first();
 
         $startDate = Carbon::parse($habitTime->start_time)->format('Y-m-d');
         $startTime = Carbon::parse($habitTime->start_time)->format('H:i:s');
         $endDate = Carbon::parse($habitTime->end_time)->format('Y-m-d');
         $endTime = Carbon::parse($habitTime->end_time)->format('H:i:s');
 
-        $service = $this->createMock(HabitService::class);
-        $service->expects($this->once())
-            ->method('updateHabitTime')
+        $service = Mockery::mock(HabitService::class);
+        $this->app->instance(HabitService::class, $service);
+        $service
+            ->shouldReceive('updateHabitTime')
             ->with($habitTime->id, $user->id, $habitTime->habit_id, $startDate, $startTime, $endDate, $endTime)
-            ->willReturn(true);
+            ->andReturn(true);
 
-        $controller = new HabitTimeController;
+        $controller = $this->app->make(HabitTimeController::class);
         $requests = Mockery::mock(HabitTimeRequests::class);
         $requests->shouldReceive('validated')->once()->andReturn([
             'habit_id' => $habitTime->habit_id,
@@ -150,28 +155,28 @@ class HabitTimeControllerTest extends TestCase
         $this->assertEquals(__('Habit updated successfully'), $flashMessage);
     }
 
-    /**
-     * Tests working validation for add habit time
-     *
-     * @return void
-     * @dataProvider invalidHabitTimeProvider
-     */
+    /** 
+    * Tests working validation for add habit time
+    *
+    * @return void
+    * @dataProvider invalidHabitTimeProvider
+    **/
     public function testAddHabitTimeFailedValidation($data, $errorField)
     {
-        $user = User::factory()->create();
+        $user = User::find(1);
         $this->actingAs($user);
 
         $response = $this->post(route('habits.transactions.store'), $data);
 
         $response->assertSessionHasErrors($errorField);
     }
-
+    /**/
     /**
      * Habit Time Provider for invalid data
      *
      * @param [type] $data
      * @return void
-     */
+     **/
     public function invalidHabitTimeProvider()
     {
         return [
@@ -259,15 +264,14 @@ class HabitTimeControllerTest extends TestCase
     }
 
 
-
-    /**
-     * Validate the add habit timer
-     *
-     * @return void
-     */
+     /**
+      * Validate the add habit timer
+      * 
+      * @return void
+      **/
     public function testAddHabitTimerFailedValidation()
     {
-        $user = User::factory()->create();
+        $user = User::find(1);
         $this->actingAs($user);
 
         $response = $this->post(route('habits.transactions.timer.store'), []);
@@ -275,9 +279,9 @@ class HabitTimeControllerTest extends TestCase
         $response->assertSessionHasErrors(['habit_id']);
     }
 
-    protected function tearDown(): void
+    public function tearDown(): void
     {
-        parent::tearDown();
         Mockery::close();
+        parent::tearDown();
     }
 }

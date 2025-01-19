@@ -2,26 +2,23 @@
 
 namespace NickKlein\Habits\Tests;
 
-use NickKLein\Habits\Controllers\Public\HabitTimeController;
+use NickKlein\Habits\Controllers\Public\HabitTimeController;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Tests\TestModels\User;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Tests\TestCase;
+use NickKlein\Habits\Services\HabitService;
 use Mockery;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Response;
 use Illuminate\Http\JsonResponse;
-use App\Services\HabitService;
 
 class HabitPublicRoutesTest extends TestCase
 {
-    use RefreshDatabase;
-
     public function testGetDailyNotification()
     {
         // Arrange: Create a user
-        $user = User::factory()->create();
+        $user = User::find(1);
 
         // Arrange: Mock HabitService
         $mockService = Mockery::mock(HabitInsightService::class);
@@ -31,7 +28,7 @@ class HabitPublicRoutesTest extends TestCase
             ->andReturn('Habit1: 10, Habit2: 20, ');
 
         // Act: Call the getDailyNotification method on the controller
-        $controller = new HabitTimeController;
+        $controller = $this->app->make(HabitTimeController::class);
         $response = $controller->getDailyNotification($user->id, $mockService);
 
         // Assert: Check the response
@@ -43,7 +40,7 @@ class HabitPublicRoutesTest extends TestCase
     public function testGetWeeklyNotifications()
     {
         // Arrange: Create a user
-        $user = User::factory()->create();
+        $user = User::find(1);
 
         // Arrange: Mock HabitService
         $mockService = Mockery::mock(HabitInsightService::class);
@@ -57,7 +54,7 @@ class HabitPublicRoutesTest extends TestCase
         $this->app->instance(HabitInsightService::class, $mockService);
 
         // Act: Call the getWeeklyNotifications method on the controller
-        $controller = new HabitTimeController;
+        $controller = $this->app->make(HabitTimeController::class);
         $response = $controller->getWeeklyNotifications($user->id, $mockService);
 
         // Assert: Check the response
@@ -69,10 +66,10 @@ class HabitPublicRoutesTest extends TestCase
     public function testStoreHabitTime()
     {
         // Arrange: Create a user
-        $user = User::factory()->create();
+        $user = User::find(1);
 
         // Create a habit
-        $habitTime = HabitTime::factory()->create();
+        $habitTime = HabitTime::where('user_id', $user->id)->first();
 
         // Arrange: Mock HabitInsightRepository
         $habitInsightRepository = new HabitInsightRepository();
@@ -101,10 +98,10 @@ class HabitPublicRoutesTest extends TestCase
     public function testStoreHabitTimeFail()
     {
         // Arrange: Create a user
-        $user = User::factory()->create();
+        $user = User::find(1);
 
         // Create a habit
-        $habitTime = HabitTime::factory()->create();
+        $habitTime = HabitTime::where('user_id', $user->id)->first();
 
         // Insight Repository
         $habitInsightRepositoryMock = Mockery::mock(HabitInsightRepository::class);

@@ -10,14 +10,16 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class HabitInsightRepositoryTest extends TestCase
 {
-
-    use RefreshDatabase; // this will ensure that the database is reset after each test
-
     /** @test */
     public function it_can_fetch_the_average_duration_by_habit_id()
     {
+        // Clean test
+
         $userId = 1;
         $habitId = 1;
+
+        // Data gets generated through TestCase, but in this case we need to have nothing there since we're testing the repository itself
+        HabitTime::where('user_id', $userId)->where('habit_id', $habitId)->delete();
 
         $startOfRange = Carbon::today()->subDays(6);
         $endOfRange = Carbon::today();
@@ -52,11 +54,14 @@ class HabitInsightRepositoryTest extends TestCase
         $this->assertEquals(120, $average);
     }
 
-    /** @test */
+    /** @test **/
     public function it_can_fetch_the_summation_duration_by_habit_id()
     {
         $userId = 1;
         $habitId = 1;
+
+        // Data gets generated through TestCase, but in this case we need to have nothing there since we're testing the repository itself
+        HabitTime::where('user_id', $userId)->where('habit_id', $habitId)->delete();
 
         $startOfRange = Carbon::today()->subDays(6);
         $endOfRange = Carbon::today();
@@ -91,11 +96,13 @@ class HabitInsightRepositoryTest extends TestCase
         $this->assertEquals(360, $sum);
     }
 
-    /** @test */
+    /** @test **/
     public function it_checks_if_any_habit_is_active_for_a_given_user()
     {
         $userId = 1;
         $habitId = 1;
+        // Data gets generated through TestCase, but in this case we need to have nothing there since we're testing the repository itself
+        HabitTime::where('user_id', $userId)->where('habit_id', $habitId)->delete();
 
         // Initially, no habit is active
         $repository = new HabitInsightRepository();
@@ -117,12 +124,14 @@ class HabitInsightRepositoryTest extends TestCase
         $this->assertFalse($repository->anyHabitActive($userId));
     }
 
-    /** @test */
+    /** @test **/
     public function it_checks_if_a_specific_habit_is_active_for_a_given_user()
     {
         $userId = 1;
         $activeHabitId = 1;
         $inactiveHabitId = 2;
+        // Data gets generated through TestCase, but in this case we need to have nothing there since we're testing the repository itself
+        HabitTime::where('user_id', $userId)->whereIn('habit_id', [$activeHabitId, $inactiveHabitId])->delete();
 
         $repository = new HabitInsightRepository();
 
@@ -150,14 +159,16 @@ class HabitInsightRepositoryTest extends TestCase
         $this->assertFalse($repository->isHabitActive($inactiveHabitId, $userId));
     }
 
-
-    /** @test */
+    /** @test **/
     public function it_fetches_the_habit_duration_by_date_range()
     {
         $userId = 1;
         $habitId = 1;
         $startRange = Carbon::today()->subDays(6)->toDateString();
         $endRange = Carbon::today()->toDateString();
+
+        // Data gets generated through TestCase, but in this case we need to have nothing there since we're testing the repository itself
+        HabitTime::where('user_id', $userId)->whereIn('habit_id', [$habitId])->delete();
 
         $repository = new HabitInsightRepository();
 

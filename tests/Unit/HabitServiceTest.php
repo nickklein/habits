@@ -13,11 +13,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class HabitServiceTest extends TestCase
 {
-    use RefreshDatabase;
 
     public function test_manage_habit_time_starts_habit_if_not_active()
     {
-        $user = User::factory()->create();
+        $user = User::find(1);
         $habitId = 1; // adjust this as necessary
         $service = new HabitInsightService();
         $repository = new HabitInsightRepository();
@@ -39,7 +38,7 @@ class HabitServiceTest extends TestCase
 
     public function test_manage_habit_time_ends_habit_if_active()
     {
-        $user = User::factory()->create();
+        $user = User::find(1);
         $habitId = 1; // adjust this as necessary
 
         $service = new HabitInsightService();
@@ -72,8 +71,8 @@ class HabitServiceTest extends TestCase
     public function testUpdateHabitTime()
     {
         // Arrange: Create a user and a habitTime
-        $user = User::factory()->create();
-        $habitTime = HabitTime::factory()->create(['user_id' => $user->id]);
+        $user = User::find(1);
+        $habitTime = HabitTime::where('user_id', $user->id)->first();
 
         // Create a new set of data to update the habitTime with
         $newHabitId = 2;

@@ -20,7 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 
 class HabitTimeController extends Controller
 {

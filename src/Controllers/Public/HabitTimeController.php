@@ -2,10 +2,10 @@
 
 namespace NickKlein\Habits\Controllers\Public;
 
-use App\Http\Controllers\Controller;
-use App\Repositories\HabitInsightRepository;
-use App\Services\HabitInsightService;
-use App\Services\HabitService;
+use Illuminate\Routing\Controller;
+use NickKlein\Habits\Repositories\HabitInsightRepository;
+use NickKlein\Habits\Services\HabitInsightService;
+use NickKlein\Habits\Services\HabitService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
