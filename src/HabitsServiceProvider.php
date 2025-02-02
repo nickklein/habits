@@ -2,8 +2,10 @@
 
 namespace NickKlein\Habits;
 
+use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
 use NickKlein\Habits\Commands\RunSeederCommand;
+use NickKlein\Habits\Middleware\PublicAPI;
 
 class HabitsServiceProvider extends ServiceProvider
 {
@@ -12,6 +14,7 @@ class HabitsServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->registerMiddleware($this->app->router);
         /*
          * Optional methods to load your package assets
          */
@@ -30,6 +33,11 @@ class HabitsServiceProvider extends ServiceProvider
         $this->commands([
             RunSeederCommand::class,
         ]);
+    }
+
+    public function registerMiddleware(Router $router)
+    {
+        $router->aliasMiddleware('publicapi', PublicAPI::class);
     }
 }
 
