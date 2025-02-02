@@ -2,25 +2,21 @@
 
 namespace NickKlein\Habits\Controllers;
 
-use NickKlein\Habits\Requests\HabitRequests;
 use NickKlein\Habits\Requests\HabitTimeRequests;
 use NickKlein\Habits\Requests\HabitTimerRequests;
-use NickKlein\Habits\Requests\TagHabitTimeRequest;
-use App\Http\Requests\TagRequest;
-use App\Http\Resources\TagsResource;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
-use App\Repositories\TagsRepository;
 use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
 use App\Services\LogsService;
-use App\Services\TagsService;
 use Exception;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Illuminate\Routing\Controller;
+use NickKlein\Habits\Repositories\TagsRepository;
+use NickKlein\Habits\Services\TagsService;
+use NickKlein\Tags\Requests\TagRequest;
 
 class HabitTimeController extends Controller
 {

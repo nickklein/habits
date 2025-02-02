@@ -4,6 +4,7 @@ namespace NickKlein\Habits\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use NickKlein\Tags\Models\Tags;
 
 class HabitTimesTag extends Model
 {
@@ -24,6 +25,6 @@ class HabitTimesTag extends Model
 
     public function tag()
     {
-        return $this->belongsTo(Tag::class, 'tag_id');
+        return $this->belongsTo(Tags::class, 'tag_id');
     }
 }

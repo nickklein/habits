@@ -2,8 +2,6 @@
 
 namespace NickKlein\Habits\Controllers;
 
-use Illuminate\Http\Request;
-use NickKlein\Habits\Models\Habit;
 use App\Http\Controllers\Controller;
 use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
