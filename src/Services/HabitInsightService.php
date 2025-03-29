@@ -110,6 +110,7 @@ class HabitInsightService
         $habitUser = HabitUser::with('habit')->where('user_id', $userId)
             ->whereIn('habit_id', [10, 11, 17, 12, 18, 5, 9, 14, 15, 16, 19, 8])
             ->whereNotNull('streak_time_goal')
+            ->orderBy('streak_time_goal', 'ASC')
             ->get();
         $notification = '';
         $insightsRepository = app(HabitInsightRepository::class);
