@@ -41,7 +41,7 @@ class HabitTimeSeeder
                     'habit_id' => $habit->habit_id,
                     'start_time' => $startDate->format('Y-m-d H:i:s'),
                     'end_time' => $endDate->format('Y-m-d H:i:s'),
-                    'duration' => $endDate->diffInSeconds($startDate), // calculated based on difference
+                    'duration' => $startDate->diffInSeconds($endDate), // calculated based on difference
                 ]);
             }
         }
