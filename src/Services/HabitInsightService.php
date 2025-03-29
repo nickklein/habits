@@ -106,13 +106,12 @@ class HabitInsightService
      */
     public function generateDailyNotification(int $userId): string
     {
-
-        $habits = Habit::where('habit_id', '>=', 3)->get();
+        $habits = Habit::whereIn('habit_id', [10, 12, 18, 5, 9])->get();
         $notification = '';
         $insightsRepository = app(HabitInsightRepository::class);
         $habitService = app(HabitService::class);
-        $yesterday9pm = Carbon::yesterday()->hour(21);
-        $today9pm = Carbon::today()->hour(21);
+        $yesterday9pm = Carbon::yesterday()->hour(23);
+        $today9pm = Carbon::today()->hour(23);
 
         foreach ($habits as $habit) {
             $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, [$habit->habit_id], $yesterday9pm, $today9pm);
@@ -134,7 +133,7 @@ class HabitInsightService
     public function generateWeeklyNotifications(int $userId)
     {
 
-        $habits = Habit::where('habit_id', '>=', 3)->get();
+        $habits = Habit::whereIn('habit_id', [10, 12, 18, 5, 9])->get();
         $insightsRepository = app(HabitInsightRepository::class);
         $habitService = app(HabitService::class);
 
@@ -152,13 +151,8 @@ class HabitInsightService
             $name = $habit->name;
             $thisWeekAvg = $habitService->convertSecondsToMinutesOrHours($thisWeek);
             $percentageDifference = $habitService->percentageDifference($weekBefore, $thisWeek);
-            $averageTimes[] = [
-                'name' => $habit->name,
-                'thisWeekAvg' => $habitService->convertSecondsToMinutesOrHours($thisWeek),
-                'percentageDifference' => $habitService->percentageDifference($weekBefore, $thisWeek) . '%'
-            ];
 
-            $notification .= $name . ': ' . $thisWeekAvg . ' (' . $percentageDifference . '), ';
+            $notification .= $name . ': ' . $thisWeekAvg . ' (' . $percentageDifference . '%), ';
         }
 
         return $notification;
@@ -177,7 +171,6 @@ class HabitInsightService
     {
         // Check if there's an existing habit already started, if already started, then end it
         if ($status === 'on') {
-            //$habitInsightRepository->endAllActiveHabits($userId);
 
             $habitTime = new HabitTime;
             $habitTime->habit_id = $habitId;
