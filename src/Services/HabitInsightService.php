@@ -115,7 +115,7 @@ class HabitInsightService
         $today9pm = Carbon::today()->hour(21);
 
         foreach ($habits as $habit) {
-            $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, $habit->habit_id, $yesterday9pm, $today9pm);
+            $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, [$habit->habit_id], $yesterday9pm, $today9pm);
             $name = $habit->name;
             $total = $habitService->convertSecondsToMinutesOrHours($dailyTotals->sum('total_duration'));
             $notification .= $name . ': ' . $total . ', ';
@@ -146,8 +146,8 @@ class HabitInsightService
 
         $notification = '';
         foreach ($habits as $habit) {
-            $thisWeek = $insightsRepository->getAveragesByHabitId($userId, $habit->habit_id, $startOfRangeThisWeek, $endOfRangeThisWeek, 7);
-            $weekBefore = $insightsRepository->getAveragesByHabitId($userId, $habit->habit_id, $startOfRangeLastWeek, $endOfRangeLastWeek, 7);
+            $thisWeek = $insightsRepository->getAveragesByHabitId($userId, [$habit->habit_id], $startOfRangeThisWeek, $endOfRangeThisWeek, 7);
+            $weekBefore = $insightsRepository->getAveragesByHabitId($userId, [$habit->habit_id], $startOfRangeLastWeek, $endOfRangeLastWeek, 7);
 
             $name = $habit->name;
             $thisWeekAvg = $habitService->convertSecondsToMinutesOrHours($thisWeek);
