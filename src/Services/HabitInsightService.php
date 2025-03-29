@@ -53,8 +53,8 @@ class HabitInsightService
     {
         $dateRanges = [
             'daily' => [
-                'start' => Carbon::today()->hour(0),
-                'end' => Carbon::today()->setTime(23, 59),
+                'start' => Carbon::today()->startOfDay(),
+                'end' => Carbon::today()->endOfDay(),
             ],
             'weekly' => [
                 'start' => Carbon::now()->startOfWeek(),
@@ -106,21 +106,44 @@ class HabitInsightService
      */
     public function generateDailyNotification(int $userId): string
     {
-        $habits = Habit::whereIn('habit_id', [10, 12, 18, 5, 9])->get();
+        // WARNING. Really messy code that needs to be cleaned up. 
+        $habitUser = HabitUser::with('habit')->where('user_id', $userId)
+            ->whereIn('habit_id', [10, 11, 17, 12, 18, 5, 9, 14, 15, 16, 19, 8])
+            ->whereNotNull('streak_time_goal')
+            ->get();
         $notification = '';
         $insightsRepository = app(HabitInsightRepository::class);
         $habitService = app(HabitService::class);
-        $yesterday9pm = Carbon::yesterday()->hour(23);
-        $today9pm = Carbon::today()->hour(23);
+        $startOfDay = Carbon::today()->startOfDay();
+        $endOfDay = Carbon::today()->endOfDay();
 
-        foreach ($habits as $habit) {
-            $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, [$habit->habit_id], $yesterday9pm, $today9pm);
-            $name = $habit->name;
-            $total = $habitService->convertSecondsToMinutesOrHours($dailyTotals->sum('total_duration'));
-            $notification .= $name . ': ' . $total . ', ';
+        foreach($habitUser as $item) {
+            if ($item->streak_time_type === 'daily') {
+                $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, [$item->habit_id], $startOfDay, $endOfDay);
+                // if the total duration is higher than the goal, then don't show in the notification
+                if ($dailyTotals->first() && $item->streak_time_goal < $dailyTotals->first()->total_duration) {
+                    continue;
+                }
+
+                $name = $item->habit->name;
+                $total = $habitService->convertSecondsToMinutesOrHours($dailyTotals->sum('total_duration'));
+                $notification .= $name . '(d): ' . $total . ', ';
+            }
+
+            if ($item->streak_time_type === 'weekly') {
+                $weeklyTotals = $insightsRepository->getWeeklyTotalsByHabitId($userId, [$item->habit_id], $startOfDay, $endOfDay);
+                // if the total duration is higher than the goal, then don't show in the notification
+                if ($weeklyTotals->first() && $item->streak_time_goal < $weeklyTotals->first()->total_duration) {
+                    continue;
+                }
+
+                $name = $item->habit->name;
+                $total = $habitService->convertSecondsToMinutesOrHours($weeklyTotals->sum('total_duration'));
+                $notification .= $name . '(w): ' . $total . ', ';
+            }
         }
 
-        return $notification;
+        return substr($notification, 0, -2);
     }
 
     /**
