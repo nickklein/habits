@@ -108,7 +108,7 @@ class HabitInsightService
     {
         // WARNING. Really messy code that needs to be cleaned up. 
         $habitUser = HabitUser::with('habit')->where('user_id', $userId)
-            ->whereIn('habit_id', [10, 11, 17, 12, 18, 5, 9, 14, 15, 16, 19, 8])
+            ->whereIn('habit_id', [10, 11, 17, 5, 9, 14, 15, 16, 19, 8, 4])
             ->whereNotNull('streak_time_goal')
             ->orderBy('streak_time_goal', 'ASC')
             ->get();
