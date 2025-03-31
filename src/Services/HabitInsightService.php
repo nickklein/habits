@@ -117,6 +117,8 @@ class HabitInsightService
         $habitService = app(HabitService::class);
         $startOfDay = Carbon::today()->startOfDay();
         $endOfDay = Carbon::today()->endOfDay();
+        $startOfWeek = Carbon::today()->startOfWeek();
+        $endOfWeek = Carbon::today()->endOfWeek();
 
         foreach($habitUser as $item) {
             if ($item->streak_time_type === 'daily') {
@@ -132,7 +134,7 @@ class HabitInsightService
             }
 
             if ($item->streak_time_type === 'weekly') {
-                $weeklyTotals = $insightsRepository->getWeeklyTotalsByHabitId($userId, [$item->habit_id], $startOfDay, $endOfDay);
+                $weeklyTotals = $insightsRepository->getWeeklyTotalsByHabitId($userId, [$item->habit_id], $startOfWeek, $endOfWeek);
                 // if the total duration is higher than the goal, then don't show in the notification
                 if ($weeklyTotals->first() && $item->streak_time_goal < $weeklyTotals->first()->total_duration) {
                     continue;
