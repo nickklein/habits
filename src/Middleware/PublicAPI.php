@@ -17,18 +17,12 @@ class PublicAPI
      */
     public function handle(Request $request, Closure $next)
     {
-        // Try to get token from GET parameters first
-        $token = $request->query('token');
-
-        // If GET token is not set, try the Authorization header
-        if (empty($token)) {
-            $authorizationHeader = $request->header('Authorization');
-            if (empty($authorizationHeader) || !preg_match('/^Bearer\s(\S+)$/', $authorizationHeader, $matches)) {
-                return abort(404, 'Unauthorized: Bearer token is missing or invalid.');
-            }
-            // Extract Bearer token if it's valid
-            $token = $matches[1];
+        $authorizationHeader = $request->header('Authorization');
+        if (empty($authorizationHeader) || !preg_match('/^Bearer\s(\S+)$/', $authorizationHeader, $matches)) {
+            return abort(404, 'Unauthorized: Bearer token is missing or invalid.');
         }
+        // Extract Bearer token if it's valid
+        $token = $matches[1];
 
         // Validate the token
         if (!$this->isValidToken($token)) {
