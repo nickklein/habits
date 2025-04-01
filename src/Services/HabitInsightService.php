@@ -107,10 +107,10 @@ class HabitInsightService
     public function generateDailyNotification(int $userId): string
     {
         // WARNING. Really messy code that needs to be cleaned up. 
-        $habitUser = HabitUser::with('habit')->where('user_id', $userId)
-            ->whereIn('habit_id', [10, 11, 17, 5, 9, 14, 15, 16, 19, 8, 4])
+        $habitUser = HabitUser::with(['habit', 'children'])->where('user_id', $userId)
+            ->whereIn('habit_id', [10, 11, 5, 9, 14, 15, 16, 19, 8, 4])
             ->whereNotNull('streak_time_goal')
-            ->orderBy('streak_time_goal', 'ASC')
+            ->orderBy('streak_time_type', 'ASC')
             ->get();
         $notification = '';
         $insightsRepository = app(HabitInsightRepository::class);
@@ -121,8 +121,10 @@ class HabitInsightService
         $endOfWeek = Carbon::today()->endOfWeek();
 
         foreach($habitUser as $item) {
+            $habitIdsArray = $this->fetchHabitIdsBasedOnHierarchy($item);
+
             if ($item->streak_time_type === 'daily') {
-                $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, [$item->habit_id], $startOfDay, $endOfDay);
+                $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, $habitIdsArray, $startOfDay, $endOfDay);
                 // if the total duration is higher than the goal, then don't show in the notification
                 if ($dailyTotals->first() && $item->streak_time_goal < $dailyTotals->first()->total_duration) {
                     continue;
@@ -134,7 +136,7 @@ class HabitInsightService
             }
 
             if ($item->streak_time_type === 'weekly') {
-                $weeklyTotals = $insightsRepository->getWeeklyTotalsByHabitId($userId, [$item->habit_id], $startOfWeek, $endOfWeek);
+                $weeklyTotals = $insightsRepository->getWeeklyTotalsByHabitId($userId, $habitIdsArray, $startOfWeek, $endOfWeek);
                 // if the total duration is higher than the goal, then don't show in the notification
                 if ($weeklyTotals->first() && $item->streak_time_goal < $weeklyTotals->first()->total_duration) {
                     continue;
