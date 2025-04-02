@@ -19,7 +19,6 @@ class HabitServiceTest extends TestCase
         $user = User::find(1);
         $habitId = 1; // adjust this as necessary
         $service = new HabitInsightService();
-        $repository = new HabitInsightRepository();
 
         $this->assertDatabaseMissing('habit_times', [
             'habit_id' => $habitId,
@@ -27,7 +26,7 @@ class HabitServiceTest extends TestCase
             'end_time' => null
         ]);
 
-        $service->manageHabitTime($habitId, $user->id, 'on', $repository);
+        $service->manageHabitTime($habitId, $user->id, 'on');
 
         $this->assertDatabaseHas('habit_times', [
             'habit_id' => $habitId,
@@ -42,10 +41,9 @@ class HabitServiceTest extends TestCase
         $habitId = 1; // adjust this as necessary
 
         $service = new HabitInsightService();
-        $repository = new HabitInsightRepository();
 
         // Start the habit
-        $service->manageHabitTime($habitId, $user->id, 'on', $repository);
+        $service->manageHabitTime($habitId, $user->id, 'on');
 
         $this->assertDatabaseHas('habit_times', [
             'habit_id' => $habitId,
@@ -54,7 +52,7 @@ class HabitServiceTest extends TestCase
         ]);
 
         // End the habit
-        $service->manageHabitTime($habitId, $user->id, 'off', $repository);
+        $service->manageHabitTime($habitId, $user->id, 'off');
 
         $this->assertDatabaseMissing('habit_times', [
             'habit_id' => $habitId,

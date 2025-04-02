@@ -51,9 +51,9 @@ class HabitTimeController extends Controller
      * @param HabitInsightRepository $habitInsightRepository
      * @return Response
      */
-    public function store(int $userId, int $habitTimeId, string $status, HabitInsightService $habitInsightService, HabitInsightRepository $habitInsightRepository)
+    public function store(int $userId, int $habitTimeId, string $status, HabitInsightService $habitInsightService)
     {
-        $response = $habitInsightService->manageHabitTime($habitTimeId, $userId, $status, $habitInsightRepository);
+        $response = $habitInsightService->manageHabitTime($habitTimeId, $userId, $status);
         if ($response) {
             return response()->json([
                 'status' => 'success',

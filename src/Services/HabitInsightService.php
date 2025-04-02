@@ -193,9 +193,8 @@ class HabitInsightService
      * @param integer $userId
      * @return boolean
      *
-     * @todo dependency injection for HabitInsightRepository
      */
-    public function manageHabitTime(int $habitId, int $userId, string $status, HabitInsightRepository $habitInsightRepository): bool
+    public function manageHabitTime(int $habitId, int $userId, string $status): bool
     {
         // Check if there's an existing habit already started, if already started, then end it
         if ($status === 'on') {

@@ -71,14 +71,11 @@ class HabitPublicRoutesTest extends TestCase
         // Create a habit
         $habitTime = HabitTime::where('user_id', $user->id)->first();
 
-        // Arrange: Mock HabitInsightRepository
-        $habitInsightRepository = new HabitInsightRepository();
-
         // Arrange: Mock HabitInsightService
         $mockService = Mockery::mock(HabitInsightService::class);
         $mockService->shouldReceive('manageHabitTime')
             ->once()
-            ->with($habitTime->id, $user->id, 'on', $habitInsightRepository)
+            ->with($habitTime->id, $user->id, 'on')
             ->andReturn(true);
 
         // App::instance method binds the mock into the service container
@@ -87,7 +84,7 @@ class HabitPublicRoutesTest extends TestCase
 
         // Act: Call the store method on the controller
         $controller = new HabitTimeController;
-        $response = $controller->store($user->id, $habitTime->id, 'on', $mockService, $habitInsightRepository);
+        $response = $controller->store($user->id, $habitTime->id, 'on', $mockService);
 
         // Assert: Check the response
         $this->assertInstanceOf(JsonResponse::class, $response);
@@ -103,14 +100,11 @@ class HabitPublicRoutesTest extends TestCase
         // Create a habit
         $habitTime = HabitTime::where('user_id', $user->id)->first();
 
-        // Insight Repository
-        $habitInsightRepositoryMock = Mockery::mock(HabitInsightRepository::class);
-
         // Arrange: Mock HabitService
         $mockService = Mockery::mock(HabitInsightService::class);
         $mockService->shouldReceive('manageHabitTime')
             ->once()
-            ->with($habitTime->id, $user->id, 'on', $habitInsightRepositoryMock)
+            ->with($habitTime->id, $user->id, 'on')
             ->andReturn(false);
 
         // App::instance method binds the mock into the service container
@@ -119,7 +113,7 @@ class HabitPublicRoutesTest extends TestCase
 
         // Act: Call the store method on the controller
         $controller = new HabitTimeController;
-        $response = $controller->store($user->id, $habitTime->id, 'on', $mockService, $habitInsightRepositoryMock);
+        $response = $controller->store($user->id, $habitTime->id, 'on', $mockService);
 
         // Assert: Check the response
         $this->assertInstanceOf(JsonResponse::class, $response);
