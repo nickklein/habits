@@ -102,11 +102,31 @@ class HabitInsightService
      * @todo dependency injection for HabitInsightRepository etc
      *
      * @param integer $userId
-     * @return string
+     * @return array
      */
     public function generateDailyNotification(int $userId): string
     {
+        //
+        $notification = '';
+        $streakSummary = $this->generateStreakSummary($userId);
+        foreach($streakSummary as $item) {
+            $notification .= $item['name'] . '('.$item['type'].'): ' . $item['total'] . ', ';
+        }
+
+        return substr($notification, 0, -2);
+    }
+
+    /**
+     * Generate streak summary
+     * @todo dependency injection for HabitInsightRepository etc
+     *
+     * @param integer $userId
+     * @return array
+     */
+    public function generateStreakSummary(int $userId): array
+    {
         // WARNING. Really messy code that needs to be cleaned up. 
+        $streakSummary = [];
         $habitUser = HabitUser::with(['habit', 'children'])->where('user_id', $userId)
             ->whereIn('habit_id', [10, 11, 5, 9, 14, 15, 16, 19, 8, 4])
             ->whereNotNull('streak_time_goal')
@@ -132,7 +152,11 @@ class HabitInsightService
 
                 $name = $item->habit->name;
                 $total = $habitService->convertSecondsToMinutesOrHours($dailyTotals->sum('total_duration'));
-                $notification .= $name . '(d): ' . $total . ', ';
+                $streakSummary[] = [
+                    'name' => $name,
+                    'type' => 'd',
+                    'total' => $total,
+                ];
             }
 
             if ($item->streak_time_type === 'weekly') {
@@ -144,11 +168,16 @@ class HabitInsightService
 
                 $name = $item->habit->name;
                 $total = $habitService->convertSecondsToMinutesOrHours($weeklyTotals->sum('total_duration'));
+                $streakSummary[] = [
+                    'name' => $name,
+                    'type' => 'w',
+                    'total' => $total,
+                ];
                 $notification .= $name . '(w): ' . $total . ', ';
             }
         }
 
-        return substr($notification, 0, -2);
+        return $streakSummary;
     }
 
     /**
