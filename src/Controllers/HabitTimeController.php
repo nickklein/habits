@@ -8,6 +8,7 @@ use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
 use App\Services\LogsService;
+use App\Services\PushoverService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -140,10 +141,10 @@ class HabitTimeController extends Controller
      * @param HabitInsightService $insightService
      * @param HabitInsightRepository $insightRepository
      */
-    public function timerStore(HabitTimerRequests $request, HabitInsightService $insightService, HabitInsightRepository $insightRepository)
+    public function timerStore(HabitTimerRequests $request, HabitInsightService $insightService)
     {
         $fields = $request->validated();
-        $response = $insightService->manageHabitTime($fields['habit_id'], Auth::user()->id, 'on', $insightRepository);
+        $response = $insightService->manageHabitTime($fields['habit_id'], Auth::user()->id, 'on');
         if ($response) {
             return redirect()->route('habits.transactions')->with([
                 'message' => 'Habit time added successfully',

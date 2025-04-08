@@ -2,6 +2,7 @@
 
 namespace NickKlein\Habits\Services;
 
+use App\Services\PushoverService;
 use NickKlein\Habits\Models\Habit;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
@@ -102,7 +103,7 @@ class HabitInsightService
      * @todo dependency injection for HabitInsightRepository etc
      *
      * @param integer $userId
-     * @return array
+     * @return string
      */
     public function generateDailyNotification(int $userId): string
     {
@@ -155,6 +156,7 @@ class HabitInsightService
                 $streakSummary[] = [
                     'name' => $name,
                     'type' => 'd',
+                    'goal' => round($item->streak_time_goal / 60) . 'm',
                     'total' => $total,
                 ];
             }
@@ -171,6 +173,7 @@ class HabitInsightService
                 $streakSummary[] = [
                     'name' => $name,
                     'type' => 'w',
+                    'goal' => round($item->streak_time_goal / 60) . 'm',
                     'total' => $total,
                 ];
                 $notification .= $name . '(w): ' . $total . ', ';
@@ -224,11 +227,10 @@ class HabitInsightService
      *
      * @todo dependency injection for HabitInsightRepository
      */
-    public function manageHabitTime(int $habitId, int $userId, string $status, HabitInsightRepository $habitInsightRepository): bool
+    public function manageHabitTime(int $habitId, int $userId, string $status): bool
     {
         // Check if there's an existing habit already started, if already started, then end it
         if ($status === 'on') {
-
             $habitTime = new HabitTime;
             $habitTime->habit_id = $habitId;
             $habitTime->user_id = $userId;
@@ -252,6 +254,7 @@ class HabitInsightService
         $habitTime->end_time = date('Y-m-d H:i:s');
         // difference between start_time and end_time in minutes using Carbon/Carbon
         $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
+        /*event(new HabitEndedEvent($habitId));*/
 
         return $habitTime->save();
     }

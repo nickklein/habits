@@ -2,6 +2,7 @@
 
 namespace NickKlein\Habits\Controllers\Public;
 
+use App\Services\PushoverService;
 use Illuminate\Routing\Controller;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
@@ -51,15 +52,16 @@ class HabitTimeController extends Controller
      * @param HabitInsightRepository $habitInsightRepository
      * @return Response
      */
-    public function store(int $userId, int $habitTimeId, string $status, HabitInsightService $habitInsightService, HabitInsightRepository $habitInsightRepository)
+    public function store(int $userId, int $habitTimeId, string $status, HabitInsightService $habitInsightService)
     {
-        $response = $habitInsightService->manageHabitTime($habitTimeId, $userId, $status, $habitInsightRepository);
+        $response = $habitInsightService->manageHabitTime($habitTimeId, $userId, $status);
         if ($response) {
             return response()->json([
                 'status' => 'success',
                 'message' => 'Habit time added successfully',
             ], Response::HTTP_OK);
         }
+
 
         return response()->json([
             'status' => 'error',
