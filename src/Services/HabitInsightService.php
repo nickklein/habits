@@ -9,6 +9,7 @@ use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use NickKlein\Habits\Events\HabitEndedEvent;
 
 class HabitInsightService
 {
@@ -254,7 +255,7 @@ class HabitInsightService
         $habitTime->end_time = date('Y-m-d H:i:s');
         // difference between start_time and end_time in minutes using Carbon/Carbon
         $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
-        /*event(new HabitEndedEvent($habitId));*/
+        event(new HabitEndedEvent($habitTime));
 
         return $habitTime->save();
     }

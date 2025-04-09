@@ -8,6 +8,7 @@ use NickKlein\Habits\Models\HabitUser;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use NickKlein\Habits\Events\HabitEndedEvent;
 
 class HabitService
 {
@@ -74,6 +75,7 @@ class HabitService
         $habitTime->start_time = $startDateTime;
         $habitTime->end_time = $endDateTime;
         $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
+        event(new HabitEndedEvent($userId, $habitTime));
 
         return $habitTime->save();
     }

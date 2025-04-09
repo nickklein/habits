@@ -7,6 +7,7 @@ use NickKlein\Habits\Models\HabitUser;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use NickKlein\Habits\Events\HabitEndedEvent;
 
 class HabitInsightRepository
 {
@@ -161,7 +162,7 @@ class HabitInsightRepository
      */
     public function endAllActiveHabits(int $userId, array $habitIds = []): void
     {
-        $activeHabits = HabitTime::when($habitIds, function ($query) use ($habitIds) {
+        $activeHabits = HabitTime::with('habit')->when($habitIds, function ($query) use ($habitIds) {
             return $query->whereIn('habit_id', $habitIds);
         })
             ->where('user_id', $userId)
@@ -172,6 +173,7 @@ class HabitInsightRepository
         foreach ($activeHabits as $habitTime) {
             $habitTime->end_time = date('Y-m-d H:i:s');
             $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
+            event(new HabitEndedEvent($userId, $habitTime));
             $habitTime->save();
         }
     }
