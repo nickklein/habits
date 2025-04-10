@@ -95,7 +95,7 @@ class HabitEndListener
      **/
     private function hasAchievedWeeklyGoal(int $userId, int $goalTime, int $habitId): bool
     {
-        $weeklyTotals = $this->habitInsightRepository->getWeeklyTotalsByHabitId($userId, [$habitId], $this->timeRanges['startOfDay'], $this->timeRanges['endOfDay']);
+        $weeklyTotals = $this->habitInsightRepository->getWeeklyTotalsByHabitId($userId, [$habitId], $this->timeRanges['startOfWeek'], $this->timeRanges['endOfWeek']);
         if ($weeklyTotals->first() && $goalTime >= $weeklyTotals->first()->total_duration) {
             return false;
         }
