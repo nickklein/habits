@@ -53,63 +53,59 @@ class HabitInsightRepository
     /**
      * Get Daily Totlals by Habit ID
      *
-     * @param integer $userId
-     * @param integer $habitId
-     * @return Collection
      */
-    public function getDailyTotalsByHabitId(int $userId, array $habitIds, ?string $startRange = null, ?string $endRange = null, string $timezone = 'UTC')
+    public function getDailyTotalsByHabitId(int $userId, string $timezone = 'UTC', array $habitIds, ?string $startRange = null, ?string $endRange = null)
     {
-        // Get the raw data first without grouping
-        $query = HabitTime::select('start_time', 'duration')
+                // Validate the timezone before using it
+        $safeTimezone = $this->getSafeTimezone($timezone);
+        
+        // Create a date expression variable that we'll reuse exactly the same way
+        $dateExpression = 'DATE(CONVERT_TZ(start_time, "UTC", ?))';
+        
+        // Create a secure parameterized query with identical expressions
+        $query = HabitTime::query()
             ->where('user_id', $userId)
             ->whereIn('habit_id', $habitIds)
             ->when($startRange, function ($query) use ($startRange, $endRange) {
                 return $query->whereBetween('start_time', [$startRange, $endRange]);
-            })
-            ->orderBy('start_time');
+            });
         
-        $rawData = $query->get();
-        
-        // Group it by user's local date
-        $groupedByUserDate = collect();
-        
-        foreach ($rawData as $record) {
-            // Convert UTC time to user's timezone to get the correct date
-            $localDate = Carbon::parse($record->start_time)
-                ->setTimezone($timezone)
-                ->format('Y-m-d');
-            
-            if (!isset($groupedByUserDate[$localDate])) {
-                $groupedByUserDate[$localDate] = (object)[
-                    'date' => $localDate,
-                    'total_duration' => 0
-                ];
-            }
-            
-            $groupedByUserDate[$localDate]->total_duration += $record->duration;
-        }
-        
-        return $groupedByUserDate->values()->sortBy('date')->values();
+        // Use DB raw expressions that explicitly use the same alias in both SELECT and GROUP BY
+        return $query->selectRaw($dateExpression . ' as date_column, SUM(duration) as total_duration', [$safeTimezone])
+            ->groupBy(DB::raw('date_column'))
+            ->orderBy('date_column')
+            ->get();
     }
 
 
     /**
      * Get Weekly Totals by Habit ID
      *
-     * @param integer $userId
-     * @param integer $habitId
-     * @return Collection
      */
-    public function getWeeklyTotalsByHabitId(int $userId, array $habitIds, ?string $startRange = null, ?string $endRange = null): Collection
+    public function getWeeklyTotalsByHabitId(int $userId, string $timezone = 'UTC', array $habitIds, ?string $startRange = null, ?string $endRange = null)
     {
-        return HabitTime::select(DB::raw('YEARWEEK(start_time, 1) as week'), DB::raw('SUM(duration) as total_duration'))
-            ->where('user_id', $userId)
-            ->whereIn('habit_id', $habitIds)
-            ->when($startRange, function ($query) use ($startRange, $endRange) {
-                return $query->whereBetween('start_time', [$startRange, $endRange]);
-            })
-            ->groupBy(DB::raw('YEARWEEK(start_time, 1)'))
-            ->orderBy('week', 'asc')
+        // Validate the timezone before using it
+        $safeTimezone = $this->getSafeTimezone($timezone);
+        
+        // Create a subquery with the timezone conversion
+        $subQuery = HabitTime::selectRaw(
+            'id, user_id, habit_id, duration, ' . 
+            'YEARWEEK(CONVERT_TZ(start_time, "UTC", ?), 3) as week_column', 
+            [$safeTimezone]
+        )
+        ->where('user_id', $userId)
+        ->whereIn('habit_id', $habitIds)
+        ->when($startRange, function ($query) use ($startRange, $endRange) {
+            return $query->whereBetween('start_time', [$startRange, $endRange]);
+        });
+
+        // Query the subquery to get the totals by week
+        return DB::query()
+            ->fromSub($subQuery, 'converted_weeks')
+            ->select('week_column as week')
+            ->addSelect(DB::raw('SUM(duration) as total_duration'))
+            ->groupBy('week_column')
+            ->orderBy('week_column')
             ->get();
     }
 
@@ -200,5 +196,21 @@ class HabitInsightRepository
             event(new HabitEndedEvent($userId, $habitTime));
             $habitTime->save();
         }
+    }
+    /**
+    * Validate timezone to ensure it's safe to use in queries
+    *
+    * @param string $timezone
+    * @return string
+    */
+    private function getSafeTimezone(string $timezone): string
+    {
+        $validTimezones = timezone_identifiers_list();
+        
+        if (in_array($timezone, $validTimezones)) {
+            return $timezone;
+        }
+        
+        return 'UTC';
     }
 }

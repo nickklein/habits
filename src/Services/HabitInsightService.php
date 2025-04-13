@@ -68,10 +68,10 @@ class HabitInsightService
         foreach ($habitsUser as $key => $habit) {
             $color = self::HABIT_COLOR_INDEX[$habit->habit_id];
             // Some habits have children, so we need to loop through them as well
-            $summaries[$group] = $this->generateDailySummariesForUser($habit, $userId, $dateRanges, $color, $service, $insightRepository);
+            $summaries[$group] = $this->generateDailySummariesForUser($habit, $userId, $timezone, $dateRanges, $color, $service, $insightRepository);
             if ($habit->children) {
                 foreach ($habit->children as $key => $child) {
-                    $summaries[$group]['children'][] = $this->generateDailySummariesForUser($child, $userId, $dateRanges, $color, $service, $insightRepository);
+                    $summaries[$group]['children'][] = $this->generateDailySummariesForUser($child, $userId, $timezone, $dateRanges, $color, $service, $insightRepository);
                 }
             }
             $group++;
@@ -81,10 +81,10 @@ class HabitInsightService
     }
 
 
-    public function generateDailySummariesForUser(HabitUser $habitUser, int $userId, array $dateRanges, string $color, HabitService $service, HabitInsightRepository $insightRepository)
+    public function generateDailySummariesForUser(HabitUser $habitUser, int $userId, string $timezone, array $dateRanges, string $color, HabitService $service, HabitInsightRepository $insightRepository)
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
-        $time = $this->fetchTotalDurationBasedOnStreakType($habitUser, $userId, $habitIds, $dateRanges, $insightRepository);
+        $time = $this->fetchTotalDurationBasedOnStreakType($habitUser, $userId, $timezone, $habitIds, $dateRanges, $insightRepository);
 
         $currentTime = $this->convertTimeToSummaryPageFormat($service, $time);
         $goalTime = $this->convertGoalTimeToSummaryPageFormat($service, $habitUser);
@@ -148,7 +148,7 @@ class HabitInsightService
             $habitIdsArray = $this->fetchHabitIdsBasedOnHierarchy($item);
 
             if ($item->streak_time_type === 'daily') {
-                $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, $habitIdsArray, $startOfDay, $endOfDay);
+                $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, $timezone, $habitIdsArray, $startOfDay, $endOfDay);
                 // if the total duration is higher than the goal, then don't show in the notification
                 if ($dailyTotals->first() && $item->streak_time_goal < $dailyTotals->first()->total_duration) {
                     continue;
@@ -165,7 +165,7 @@ class HabitInsightService
             }
 
             if ($item->streak_time_type === 'weekly') {
-                $weeklyTotals = $insightsRepository->getWeeklyTotalsByHabitId($userId, $habitIdsArray, $startOfWeek, $endOfWeek);
+                $weeklyTotals = $insightsRepository->getWeeklyTotalsByHabitId($userId, $timezone, $habitIdsArray, $startOfWeek, $endOfWeek);
                 // if the total duration is higher than the goal, then don't show in the notification
                 if ($weeklyTotals->first() && $item->streak_time_goal < $weeklyTotals->first()->total_duration) {
                     continue;
@@ -278,8 +278,8 @@ class HabitInsightService
         $dayBeforeYesterdayEnd = Carbon::today($timezone)->subDays(2)->hour(24)->setTimezone('UTC');
 
         // Grab the values for yesterday and the day before yesterday
-        $yesterdayCollection = $habitInsightRepository->getDailyTotalsByHabitId($habitUser->user_id, $habitIds, $yesterday, $yesterdayEnd);
-        $dayOfBeforeYesterdayCollection = $habitInsightRepository->getDailyTotalsByHabitId($habitUser->user_id, $habitIds, $dayBeforeYesterday, $dayBeforeYesterdayEnd);
+        $yesterdayCollection = $habitInsightRepository->getDailyTotalsByHabitId($habitUser->user_id, $timezone, $habitIds, $yesterday, $yesterdayEnd);
+        $dayOfBeforeYesterdayCollection = $habitInsightRepository->getDailyTotalsByHabitId($habitUser->user_id, $timezone, $habitIds, $dayBeforeYesterday, $dayBeforeYesterdayEnd);
 
         // Convert values to hours/minutes
         $yesterdayValues = $habitService->convertSecondsToMinutesOrHoursV2($yesterdayCollection->sum('total_duration'));
@@ -589,7 +589,7 @@ class HabitInsightService
         $startDate = Carbon::now($timezone)->subMonths(3)->startOfDay()->setTimezone('UTC')->toDateTimeString();
         $endDate = Carbon::now($timezone)->endOfDay()->setTimezone('UTC')->toDateTimeString();
 
-        $weeklyTotals = $habitInsightRepository->getWeeklyTotalsByHabitId($userId, $habitIds, $startDate, $endDate);
+        $weeklyTotals = $habitInsightRepository->getWeeklyTotalsByHabitId($userId, $timezone, $habitIds, $startDate, $endDate);
 
         $currentStreakCount = 0;
         $longestStreakCount = 0;
@@ -647,7 +647,7 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $dailyTotals = $habitInsightRepository->getDailyTotalsByHabitId($userId, $habitIds);
+        $dailyTotals = $habitInsightRepository->getDailyTotalsByHabitId($userId, $timezone, $habitIds);
         $currentStreakCount = 0;
         $longestStreakCount = 0;
         $totalStreaks = 0;
@@ -729,19 +729,13 @@ class HabitInsightService
     /**
      * Determine if it's a daily or weekly habit and fetch the totals accordingly.
      *
-     * @param HabitUser $habit
-     * @param integer $userId
-     * @param array $habitIds
-     * @param array $dateRanges
-     * @param HabitInsightRepository $insightRepository
-     * @return integer
      */
-    private function fetchTotalDurationBasedOnStreakType(HabitUser $habit, int $userId, array $habitIds, array $dateRanges, HabitInsightRepository $insightRepository)
+    private function fetchTotalDurationBasedOnStreakType(HabitUser $habit, int $userId, string $timezone = 'UTC', array $habitIds, array $dateRanges, HabitInsightRepository $insightRepository)
     {
         if ($habit->streak_time_type === 'weekly') {
-            $totals = $insightRepository->getWeeklyTotalsByHabitId($userId, $habitIds, $dateRanges['weekly']['start'], $dateRanges['weekly']['end']);
+            $totals = $insightRepository->getWeeklyTotalsByHabitId($userId, $timezone, $habitIds, $dateRanges['weekly']['start'], $dateRanges['weekly']['end']);
         } else {
-            $totals = $insightRepository->getDailyTotalsByHabitId($userId, $habitIds, $dateRanges['daily']['start'], $dateRanges['daily']['end']);
+            $totals = $insightRepository->getDailyTotalsByHabitId($userId, $timezone, $habitIds, $dateRanges['daily']['start'], $dateRanges['daily']['end']);
         }
 
         return $totals->sum('total_duration');
