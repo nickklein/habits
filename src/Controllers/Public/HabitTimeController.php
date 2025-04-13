@@ -22,7 +22,8 @@ class HabitTimeController extends Controller
      */
     public function getDailyNotification(int $userId, HabitInsightService $habitInsightService)
     {
-        $averageTime = $habitInsightService->generateDailyNotification($userId);
+        $user = User::find($userId);
+        $averageTime = $habitInsightService->generateDailyNotification($userId, $user->timezone);
 
         return response()->json([
             'notification' => $averageTime,
@@ -38,7 +39,8 @@ class HabitTimeController extends Controller
      */
     public function getWeeklyNotifications(int $userId, HabitInsightService $habitInsightService)
     {
-        $averageTime = $habitInsightService->generateWeeklyNotifications($userId);
+        $user = User::find($userId);
+        $averageTime = $habitInsightService->generateWeeklyNotifications($userId, $user->timezone);
 
         return response()->json([
             'notification' => $averageTime,

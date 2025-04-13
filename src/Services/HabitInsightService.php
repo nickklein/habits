@@ -104,13 +104,14 @@ class HabitInsightService
      * @todo dependency injection for HabitInsightRepository etc
      *
      * @param integer $userId
+     * @param string $timezone
      * @return string
      */
-    public function generateDailyNotification(int $userId): string
+    public function generateDailyNotification(int $userId, string $timezone = 'UTC'): string
     {
         //
         $notification = '';
-        $streakSummary = $this->generateStreakSummary($userId);
+        $streakSummary = $this->generateStreakSummary($userId, $timezone);
         foreach($streakSummary as $item) {
             $notification .= $item['name'] . '('.$item['type'].'): ' . $item['total'] . ', ';
         }
