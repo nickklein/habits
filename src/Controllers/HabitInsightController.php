@@ -26,7 +26,7 @@ class HabitInsightController extends Controller
             ->where('archive', false)
             ->get();
 
-        $habits = $insightService->getDailySummaryForHabits(Auth::user()->id, $habitUser, $service, $insightRepository);
+        $habits = $insightService->getDailySummaryForHabits(Auth::user()->id, Auth::user()->timezone, $habitUser, $service, $insightRepository);
 
         return Inertia::render('Habits/Index', [
             'habits' => $habits,
@@ -49,13 +49,13 @@ class HabitInsightController extends Controller
         return Inertia::render('Habits/ShowInsights', [
             'habit' => $habitsUser,
             'color' => HabitInsightService::HABIT_COLOR_INDEX[$habitsUser->parent->habit_id ?? $habitsUser->habit_id],
-            'streaks' => $habitInsightService->getStreaks($habitsUser, Auth::user()->id, $habitId, $habitInsightRepository),
-            'dailySummaryHighlights' => $habitInsightService->getDailySummaryHighlights($habitsUser, $habitService, $habitInsightRepository),
-            'weeklyAveragesHighlights' => $habitInsightService->getWeeklyAverageHighlights($habitsUser, $habitService, $habitInsightRepository),
-            'weeklySummaryHighlights' => $habitInsightService->weeklySummaryHighlights($habitsUser, $habitService, $habitInsightRepository),
-            'monthlyAveragesHighlights' => $habitInsightService->getMonthlyAverageHighlights($habitsUser, $habitService, $habitInsightRepository),
-            'monthlySummaryHighlights' => $habitInsightService->getMonthlySummaryHighlights($habitsUser, $habitService, $habitInsightRepository),
-            'yearlySummaryHighlights' => $habitInsightService->getYearlySummaryHighlights($habitsUser, $habitService, $habitInsightRepository)
+            'streaks' => $habitInsightService->getStreaks($habitsUser, Auth::user()->id, Auth::user()->timezone, $habitId, $habitInsightRepository),
+            'dailySummaryHighlights' => $habitInsightService->getDailySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
+            'weeklyAveragesHighlights' => $habitInsightService->getWeeklyAverageHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
+            'weeklySummaryHighlights' => $habitInsightService->weeklySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
+            'monthlyAveragesHighlights' => $habitInsightService->getMonthlyAverageHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
+            'monthlySummaryHighlights' => $habitInsightService->getMonthlySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
+            'yearlySummaryHighlights' => $habitInsightService->getYearlySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository)
         ]);
     }
 }
