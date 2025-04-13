@@ -11,9 +11,7 @@ Route::middleware(['web'])->group(function () {
         Route::get('/habit/user/{userId}/habit/{habitTimeId}/timer/{status}', [PublicHabitTimeController::class, 'store'])->name('habit.time.store-public');
 
         Route::get('/habit/user/{userId}/habit/check-status', [PublicHabitTimeController::class, 'isHabitActive'])->name('habit.time.check-status-public');
-        /** Deprecated. Going to remove soon **/
-        /*Route::get('/habit/user/{userId}/habit/timer/off', [PublicHabitTimeController::class, 'endTimers'])->name('habit.time.store-public');*/
-        /**/
-        /*Route::get('/habit/user/{userId}/habit/timer/off', [PublicHabitTimeController::class, 'endTimers'])->name('habit.time.store-public');*/
+        // Multiple ids at the same time
+        Route::get('/habit/user/{userId}/habit/timer/off', [PublicHabitTimeController::class, 'endTimers'])->name('habit.time.store-public');
     });
 });

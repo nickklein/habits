@@ -73,15 +73,15 @@ class HabitTimeController extends Controller
 
     /**
      * Ends all timers for a user (PUBLIC API)
-     * @deprecated
      * @param integer $userId
      * @param HabitInsightRepository $habitInsightRepository
      * @return void
      */
     public function endTimers(int $userId, HabitInsightRepository $habitInsightRepository)
     {
+        $user = User::find($userId);
         $habitIds = request()->has('ids') ? explode(',', request()->get('ids')) : [];
-        $habitInsightRepository->endAllActiveHabits($userId, $habitIds);
+        $habitInsightRepository->endAllActiveHabits($userId, $user->timezone, $habitIds);
 
         return response()->json([
             'status' => 'success',
