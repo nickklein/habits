@@ -74,7 +74,7 @@ class HabitPublicRoutesTest extends TestCase
         $mockService = Mockery::mock(HabitInsightService::class);
         $mockService->shouldReceive('manageHabitTime')
             ->once()
-            ->with($habitTime->id, $user->id, 'on')
+            ->with($habitTime->id, $user->id, $user->timezone, 'on')
             ->andReturn(true);
 
         // App::instance method binds the mock into the service container
@@ -103,7 +103,7 @@ class HabitPublicRoutesTest extends TestCase
         $mockService = Mockery::mock(HabitInsightService::class);
         $mockService->shouldReceive('manageHabitTime')
             ->once()
-            ->with($habitTime->id, $user->id, 'on')
+            ->with($habitTime->id, $user->id, $user->timezone, 'on')
             ->andReturn(false);
 
         // App::instance method binds the mock into the service container

@@ -27,7 +27,7 @@ class HabitServiceTest extends TestCase
             'end_time' => null
         ]);
 
-        $service->manageHabitTime($habitId, $user->id, 'on', $repository);
+        $service->manageHabitTime($habitId, $user->id, $user->timezone, 'on', $repository);
 
         $this->assertDatabaseHas('habit_times', [
             'habit_id' => $habitId,
@@ -45,7 +45,7 @@ class HabitServiceTest extends TestCase
         $repository = new HabitInsightRepository();
 
         // Start the habit
-        $service->manageHabitTime($habitId, $user->id, 'on', $repository);
+        $service->manageHabitTime($habitId, $user->id, $user->timezone, 'on', $repository);
 
         $this->assertDatabaseHas('habit_times', [
             'habit_id' => $habitId,
@@ -54,7 +54,7 @@ class HabitServiceTest extends TestCase
         ]);
 
         // End the habit
-        $service->manageHabitTime($habitId, $user->id, 'off', $repository);
+        $service->manageHabitTime($habitId, $user->id, $user->timezone, 'off', $repository);
 
         $this->assertDatabaseMissing('habit_times', [
             'habit_id' => $habitId,
@@ -87,7 +87,7 @@ class HabitServiceTest extends TestCase
         $service = new HabitService();
 
         // Act: Call the method you're testing
-        $result = $service->updateHabitTime($habitTime->id, $user->id, $newHabitId, $newStartDate, $newStartTime, $newEndDate, $newEndTime);
+        $result = $service->updateHabitTime($habitTime->id, $user->id, $user->timezone, $newHabitId, $newStartDate, $newStartTime, $newEndDate, $newEndTime);
 
         // Assert: Check that the function returned true (indicating a successful update)
         $this->assertTrue($result);

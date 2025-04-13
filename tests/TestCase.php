@@ -38,6 +38,7 @@ class TestCase extends Orchestra
                 $table->string('name');
                 $table->string('email')->unique();
                 $table->string('password');
+                $table->string('timezone')->default('UTC');  // You can default it to 'UTC' or any other default value
                 $table->rememberToken();
                 $table->timestamps();
             });
@@ -51,6 +52,7 @@ class TestCase extends Orchestra
                 'name' => 'nick',
                 'email' => '1294247+nickklein@users.noreply.github.com',
                 'password' => Hash::make('password'), 
+                'timezone' => 'America/Los_Angeles',
             ]);
         }
 
