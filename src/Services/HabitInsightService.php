@@ -55,12 +55,12 @@ class HabitInsightService
     {
         $dateRanges = [
             'daily' => [
-                'start' => Carbon::today($timezone)->startOfDay(),
-                'end' => Carbon::today($timezone)->endOfDay(),
+                'start' => Carbon::today($timezone)->startOfDay()->setTimezone('UTC'),
+                'end' => Carbon::today($timezone)->endOfDay()->setTimezone('UTC'),
             ],
             'weekly' => [
-                'start' => Carbon::now($timezone)->startOfWeek(),
-                'end' => Carbon::now($timezone)->endOfWeek(),
+                'start' => Carbon::now($timezone)->startOfWeek()->setTimezone('UTC'),
+                'end' => Carbon::now($timezone)->endOfWeek()->setTimezone('UTC'),
             ]
         ];
         $group = 0;
@@ -139,10 +139,10 @@ class HabitInsightService
         $notification = '';
         $insightsRepository = app(HabitInsightRepository::class);
         $habitService = app(HabitService::class);
-        $startOfDay = Carbon::today($timezone)->startOfDay();
-        $endOfDay = Carbon::today($timezone)->endOfDay();
-        $startOfWeek = Carbon::today($timezone)->startOfWeek();
-        $endOfWeek = Carbon::today($timezone)->endOfWeek();
+        $startOfDay = Carbon::today($timezone)->startOfDay()->setTimezone('UTC');
+        $endOfDay = Carbon::today($timezone)->endOfDay()->setTimezone('UTC');
+        $startOfWeek = Carbon::today($timezone)->startOfWeek()->setTimezone('UTC');
+        $endOfWeek = Carbon::today($timezone)->endOfWeek()->setTimezone('UTC');
 
         foreach($habitUser as $item) {
             $habitIdsArray = $this->fetchHabitIdsBasedOnHierarchy($item);
@@ -201,11 +201,11 @@ class HabitInsightService
         $insightsRepository = app(HabitInsightRepository::class);
         $habitService = app(HabitService::class);
 
-        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6);
-        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0);
+        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6)->setTimezone('UTC');
+        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->setTimezone('UTC');
 
-        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6);
-        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1);
+        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6)->setTimezone('UTC');
+        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->setTimezone('UTC');
 
         $notification = '';
         foreach ($habits as $habit) {
@@ -271,11 +271,11 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $yesterday = Carbon::yesterday($timezone)->hour(0);
-        $yesterdayEnd = Carbon::yesterday($timezone)->hour(24);
+        $yesterday = Carbon::yesterday($timezone)->hour(0)->setTimezone('UTC');
+        $yesterdayEnd = Carbon::yesterday($timezone)->hour(24)->setTimezone('UTC');
 
-        $dayBeforeYesterday = Carbon::today($timezone)->subDays(2)->hour(0);
-        $dayBeforeYesterdayEnd = Carbon::today($timezone)->subDays(2)->hour(24);
+        $dayBeforeYesterday = Carbon::today($timezone)->subDays(2)->hour(0)->setTimezone('UTC');
+        $dayBeforeYesterdayEnd = Carbon::today($timezone)->subDays(2)->hour(24)->setTimezone('UTC');
 
         // Grab the values for yesterday and the day before yesterday
         $yesterdayCollection = $habitInsightRepository->getDailyTotalsByHabitId($habitUser->user_id, $habitIds, $yesterday, $yesterdayEnd);
@@ -316,11 +316,11 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6);
-        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0);
+        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6)->setTimezone('UTC');
+        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->setTimezone('UTC');
 
-        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6);
-        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1);
+        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6)->setTimezone('UTC');
+        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->setTimezone('UTC');
 
         $thisWeek = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisWeek, $endOfRangeThisWeek, 7);
         $weekBefore = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastWeek, $endOfRangeLastWeek, 7);
@@ -362,11 +362,11 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6);
-        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0);
+        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6)->setTimezone('UTC');
+        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->setTimezone('UTC');
 
-        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6);
-        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1);
+        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6)->setTimezone('UTC');
+        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->setTimezone('UTC');
 
         $thisWeek = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisWeek, $endOfRangeThisWeek);
         $weekBefore = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastWeek, $endOfRangeLastWeek);
@@ -406,11 +406,11 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisMonth = Carbon::now($timezone)->subMonths(1);
-        $endOfRangeThisMonth = Carbon::now($timezone);
+        $startOfRangeThisMonth = Carbon::now($timezone)->subMonths(1)->setTimezone('UTC');
+        $endOfRangeThisMonth = Carbon::now($timezone)->setTimezone('UTC');
 
-        $startOfRangeLastMonth = Carbon::now($timezone)->subMonths(2);
-        $endOfRangeLastMonth = Carbon::now($timezone)->subMonths(1);
+        $startOfRangeLastMonth = Carbon::now($timezone)->subMonths(2)->setTimezone('UTC');
+        $endOfRangeLastMonth = Carbon::now($timezone)->subMonths(1)->setTimezone('UTC');
 
         $thisMonth = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisMonth, $endOfRangeThisMonth, $startOfRangeThisMonth->diffInDays($endOfRangeThisMonth));
         $lastMonth = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastMonth, $endOfRangeLastMonth, $startOfRangeLastMonth->diffInDays($endOfRangeLastMonth));
@@ -449,11 +449,11 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisMonth = Carbon::now($timezone)->subMonths(1);
-        $endOfRangeThisMonth = Carbon::now($timezone);
+        $startOfRangeThisMonth = Carbon::now($timezone)->subMonths(1)->setTimezone('UTC');
+        $endOfRangeThisMonth = Carbon::now($timezone)->setTimezone('UTC');
 
-        $startOfRangeLastMonth = Carbon::now($timezone)->subMonths(2);
-        $endOfRangeLastMonth = Carbon::now($timezone)->subMonths(1);
+        $startOfRangeLastMonth = Carbon::now($timezone)->subMonths(2)->setTimezone('UTC');
+        $endOfRangeLastMonth = Carbon::now($timezone)->subMonths(1)->setTimezone('UTC');
 
         $thisWeek = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisMonth, $endOfRangeThisMonth);
         $weekBefore = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastMonth, $endOfRangeLastMonth);
@@ -493,11 +493,11 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisYear = Carbon::now($timezone)->startOfYear();
-        $endOfRangeThisYear = Carbon::now($timezone)->endOfYear();
+        $startOfRangeThisYear = Carbon::now($timezone)->startOfYear()->setTimezone('UTC');
+        $endOfRangeThisYear = Carbon::now($timezone)->endOfYear()->setTimezone('UTC');
 
-        $startOfRangeLastYear = Carbon::now($timezone)->subYears(1)->startOfYear();
-        $endOfRangeLastYear = Carbon::now($timezone)->subYears(1)->endOfYear();
+        $startOfRangeLastYear = Carbon::now($timezone)->subYears(1)->startOfYear()->setTimezone('UTC');
+        $endOfRangeLastYear = Carbon::now($timezone)->subYears(1)->endOfYear()->setTimezone('UTC');
 
         $thisYear = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisYear, $endOfRangeThisYear);
         $lastYear = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastYear, $endOfRangeLastYear);
@@ -649,7 +649,7 @@ class HabitInsightService
         $longestStreakCount = 0;
         $totalStreaks = 0;
         $previousDate = null;
-        $today = Carbon::today();
+        $today = Carbon::today($timezone)->setTimezone('UTC');
 
         foreach ($dailyTotals as $dailyTotal) {
             $currentDate = Carbon::parse($dailyTotal->date);
