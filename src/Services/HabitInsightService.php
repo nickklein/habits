@@ -224,23 +224,23 @@ class HabitInsightService
      *
      * @param integer $habitId
      * @param integer $userId
+     * @param string $timezone
      * @return boolean
      *
      * @todo dependency injection for HabitInsightRepository
      */
-    public function manageHabitTime(int $habitId, int $userId, string $status): bool
+    public function manageHabitTime(int $habitId, int $userId, string $timezone = 'UTC', string $status): bool
     {
-        // Check if there's an existing habit already started, if already started, then end it
         if ($status === 'on') {
             $habitTime = new HabitTime;
             $habitTime->habit_id = $habitId;
             $habitTime->user_id = $userId;
-            $habitTime->start_time = date('Y-m-d H:i:s');
+            // Convert current user-local time to UTC
+            $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
             $habitTime->end_time = null;
 
             return $habitTime->save();
         }
-
 
         $habitTime = HabitTime::where('habit_id', $habitId)
             ->where('user_id', $userId)
@@ -252,9 +252,9 @@ class HabitInsightService
             return false;
         }
 
-        $habitTime->end_time = date('Y-m-d H:i:s');
-        // difference between start_time and end_time in minutes using Carbon/Carbon
+        $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
         $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
+
         event(new HabitEndedEvent($userId, $habitTime));
 
         return $habitTime->save();
@@ -748,7 +748,7 @@ class HabitInsightService
      * @param array $habitIds
      * @param array $dateRanges
      * @param HabitInsightRepository $insightRepository
-     * @return void
+     * @return integer
      */
     private function fetchTotalDurationBasedOnStreakType(HabitUser $habit, int $userId, array $habitIds, array $dateRanges, HabitInsightRepository $insightRepository)
     {
@@ -766,7 +766,7 @@ class HabitInsightService
      *
      * @param HabitService $service
      * @param integer $time
-     * @return void
+     * @return array
      */
     private function convertTimeToSummaryPageFormat(HabitService $service, int $time): array
     {

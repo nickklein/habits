@@ -9,6 +9,7 @@ use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
 use App\Services\LogsService;
 use App\Services\PushoverService;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -24,20 +25,24 @@ class HabitTimeController extends Controller
     public function transactions(HabitService $service, HabitInsightRepository $insightRepository)
     {
         return Inertia::render('Habits/Transactions', [
-            'lists' => $service->getTransactions(),
+            'lists' => $service->getTransactions(Auth::user()->id, Auth::user()->timezone),
             'anyHabitActive' => $insightRepository->anyHabitActive(Auth::user()->id),
         ]);
     }
 
     public function create(HabitService $habitService)
     {
+        $timezone = Auth::user()?->timezone ?? config('app.timezone');
+        $now = Carbon::now($timezone);
+        $later = $now->copy()->addMinutes(15);
+
         return Inertia::render('Habits/Add', [
             'habits' => $habitService->getHabits(),
             'times' => [
-                'start_date' => date('Y-m-d'),
-                'start_time' => date('H:i:s'),
-                'end_date' => date('Y-m-d', strtotime('+15 minutes')),
-                'end_time' => date('H:i:s', strtotime('+15 minutes')),
+                'start_date' => $now->format('Y-m-d'),
+                'start_time' => $now->format('H:i:s'),
+                'end_date' => $later->format('Y-m-d'),
+                'end_time' => $later->format('H:i:s'),
             ]
         ]);
     }
@@ -52,7 +57,7 @@ class HabitTimeController extends Controller
     public function storeHabitTimes(HabitTimeRequests $request, HabitService $habitService)
     {
         $fields = $request->validated();
-        $response = $habitService->storeHabitTime(Auth::user()->id, $fields['habit_id'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
+        $response = $habitService->storeHabitTime(Auth::user()->id, Auth::user()->timezone, $fields['habit_id'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
         if ($response) {
             return back()->with([
                 'message' => 'Habit time added successfully',
@@ -95,7 +100,7 @@ class HabitTimeController extends Controller
     public function editHabitTimes(int $habitTimesId, HabitService $service, TagsRepository $tagsRepository)
     {
         return Inertia::render('Habits/Edit', [
-            'item' => $service->getHabitTime(Auth::user()->id, $habitTimesId),
+            'item' => $service->getHabitTime(Auth::user()->id, Auth::user()->timezone, $habitTimesId),
             'habits' => $service->getHabits(),
             'tags' => $tagsRepository->listHabitTimesTags($habitTimesId, Auth::user()->id),
             'tagsAddUrl' => route('habits.transactions.edit.add-tag', ['habitTimesId' => $habitTimesId]),
@@ -113,7 +118,7 @@ class HabitTimeController extends Controller
     public function updateHabitTimes(int $habitTimeId, HabitTimeRequests $request, HabitService $service)
     {
         $fields = $request->validated();
-        $response = $service->updateHabitTime($habitTimeId, Auth::user()->id, $fields['habit_id'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
+        $response = $service->updateHabitTime($habitTimeId, Auth::user()->id, Auth::user()->timezone, $fields['habit_id'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
         if ($response) {
             return back()->with(['message' => __('Habit updated successfully')], 200);
         }
@@ -144,7 +149,7 @@ class HabitTimeController extends Controller
     public function timerStore(HabitTimerRequests $request, HabitInsightService $insightService)
     {
         $fields = $request->validated();
-        $response = $insightService->manageHabitTime($fields['habit_id'], Auth::user()->id, 'on');
+        $response = $insightService->manageHabitTime($fields['habit_id'], Auth::user()->id, Auth::user()->timezone, 'on');
         if ($response) {
             return redirect()->route('habits.transactions')->with([
                 'message' => 'Habit time added successfully',

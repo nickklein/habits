@@ -157,10 +157,11 @@ class HabitInsightRepository
      * End all active habits
      *
      * @param integer $userId
+     * @param string $timezone
      * @param array $habitIds
      * @return void
      */
-    public function endAllActiveHabits(int $userId, array $habitIds = []): void
+    public function endAllActiveHabits(int $userId, string $timezone = 'UTC', array $habitIds = []): void
     {
         $activeHabits = HabitTime::with('habit')->when($habitIds, function ($query) use ($habitIds) {
             return $query->whereIn('habit_id', $habitIds);
@@ -171,7 +172,7 @@ class HabitInsightRepository
             ->get();
 
         foreach ($activeHabits as $habitTime) {
-            $habitTime->end_time = date('Y-m-d H:i:s');
+            $habitTime->end_time = Carbon::now('UTC');
             $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
             event(new HabitEndedEvent($userId, $habitTime));
             $habitTime->save();

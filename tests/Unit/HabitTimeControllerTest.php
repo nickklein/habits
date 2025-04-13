@@ -85,19 +85,20 @@ class HabitTimeControllerTest extends TestCase
         // Arrange: Create a user and a habit not owned by the user
         //
         $user = User::find(1);
+        $timezone = 'America/Los_Angeles';
         $this->actingAs($user);
         $habitTime = HabitTime::where('user_id', $user->id)->first();
 
-        $startDate = Carbon::parse($habitTime->start_time)->format('Y-m-d');
-        $startTime = Carbon::parse($habitTime->start_time)->format('H:i:s');
-        $endDate = Carbon::parse($habitTime->end_time)->format('Y-m-d');
-        $endTime = Carbon::parse($habitTime->end_time)->format('H:i:s');
+        $startDate = Carbon::parse($habitTime->start_time)->setTimezone($timezone)->format('Y-m-d');
+        $startTime = Carbon::parse($habitTime->start_time)->setTimezone($timezone)->format('H:i:s');
+        $endDate = Carbon::parse($habitTime->end_time)->setTimezone($timezone)->format('Y-m-d');
+        $endTime = Carbon::parse($habitTime->end_time)->setTimezone($timezone)->format('H:i:s');
 
         $service = Mockery::mock(HabitService::class);
         $this->app->instance(HabitService::class, $service);
         $service
             ->shouldReceive('updateHabitTime')
-            ->with($habitTime->id, $user->id, $habitTime->habit_id, $startDate, $startTime, $endDate, $endTime)
+            ->with($habitTime->id, $user->id, $user->timezone, $habitTime->habit_id, $startDate, $startTime, $endDate, $endTime)
             ->andReturn(false);
 
 
@@ -136,7 +137,7 @@ class HabitTimeControllerTest extends TestCase
         $this->app->instance(HabitService::class, $service);
         $service
             ->shouldReceive('updateHabitTime')
-            ->with($habitTime->id, $user->id, $habitTime->habit_id, $startDate, $startTime, $endDate, $endTime)
+            ->with($habitTime->id, $user->id, $user->timezone, $habitTime->habit_id, $startDate, $startTime, $endDate, $endTime)
             ->andReturn(true);
 
         $controller = $this->app->make(HabitTimeController::class);

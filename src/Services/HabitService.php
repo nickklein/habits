@@ -20,20 +20,25 @@ class HabitService
         //
     }
 
-    public function getTransactions(): LengthAwarePaginator
+    public function getTransactions(int $userId, string $timezone = 'UTC'): LengthAwarePaginator
     {
 
         $habitTimes = HabitTime::select('habit_times.id', 'habits.name', 'start_time', 'end_time', 'duration')
             ->join('habits', 'habit_times.habit_id', '=', 'habits.habit_id')
+            ->where('habit_times.user_id', $userId)
             ->orderBy('id', 'desc')
             ->paginate(self::PAGINATE_LIMIT);
 
-        $habitTimes->getCollection()->transform(function ($habitTime) {
+        $habitTimes->getCollection()->transform(function ($habitTime) use ($timezone) {
             return [
                 'id' => $habitTime->id,
                 'name' => $habitTime->name,
-                'start_time' => Carbon::parse($habitTime->start_time)->format('M j, Y, H:i:s'),
-                'end_time' => $habitTime->end_time ? Carbon::parse($habitTime->end_time)->format('M j, Y, H:i:s') : null,
+                // Convert start time to the user's timezone
+                'start_time' => Carbon::parse($habitTime->start_time)->setTimezone($timezone)->format('M j, Y, H:i:s'),
+                // Convert end time to the user's timezone (if not null)
+                'end_time' => $habitTime->end_time 
+                    ? Carbon::parse($habitTime->end_time)->setTimezone($timezone)->format('M j, Y, H:i:s') 
+                    : null,
                 'duration' => $this->convertSecondsToMinutesOrHours($habitTime->duration)
             ];
         });
@@ -57,7 +62,7 @@ class HabitService
         return $habitTime->delete();
     }
 
-    public function updateHabitTime(int $habitTimeId, int $userId, int $habitId, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    public function updateHabitTime(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, string $startDate, string $startTime, string $endDate, string $endTime): bool
     {
         $habitTime = HabitTime::where('id', $habitTimeId)
             ->where('user_id', $userId)
@@ -68,8 +73,8 @@ class HabitService
             return false;
         }
 
-        $startDateTime = $startDate . ' ' . $startTime;
-        $endDateTime = $endDate . ' ' . $endTime;
+        $startDateTime = Carbon::parse("{$startDate} {$startTime}", $timezone)->timezone('UTC');
+        $endDateTime = Carbon::parse("{$endDate} {$endTime}", $timezone)->timezone('UTC');
 
         $habitTime->habit_id = $habitId;
         $habitTime->start_time = $startDateTime;
@@ -80,17 +85,21 @@ class HabitService
         return $habitTime->save();
     }
 
-    public function storeHabitTime(int $userId, int $habitId, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    public function storeHabitTime(int $userId, string $timezone = 'UTC', int $habitId, string $startDate, string $startTime, string $endDate, string $endTime): bool
     {
         $startDateTime = $startDate . ' ' . $startTime;
         $endDateTime = $endDate . ' ' . $endTime;
 
+        $start = Carbon::createFromFormat('Y-m-d H:i:s', $startDateTime, $timezone)->setTimezone('UTC');
+        $end = Carbon::createFromFormat('Y-m-d H:i:s', $endDateTime, $timezone)->setTimezone('UTC');
+
         $habitTime = new HabitTime;
         $habitTime->habit_id = $habitId;
         $habitTime->user_id = $userId;
-        $habitTime->start_time = $startDateTime;
-        $habitTime->end_time = $endDateTime;
+        $habitTime->start_time = $start;
+        $habitTime->end_time = $end;
         $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
+        event(new HabitEndedEvent($userId, $habitTime));
 
         return $habitTime->save();
     }
@@ -124,12 +133,11 @@ class HabitService
 
     /**
      * Get all habit times for a user
-     *
      * @param integer $userId
      * @param integer $habitTimesId
      * @return array
      */
-    public function getHabitTime(int $userId, int $habitTimesId): array
+    public function getHabitTime(int $userId, string $timezone = 'UTC',  int $habitTimesId): array
     {
         $habitTime = HabitTime::where('id', $habitTimesId)
             ->select('id', 'habit_id', 'start_time', 'end_time')
@@ -139,10 +147,10 @@ class HabitService
         return [
             'id' => $habitTime->id,
             'habit_id' => $habitTime->habit_id,
-            'start_date' => Carbon::parse($habitTime->start_time)->format('Y-m-d'),
-            'start_time' => Carbon::parse($habitTime->start_time)->format('H:i:s'),
-            'end_date' => Carbon::parse($habitTime->end_time)->format('Y-m-d'),
-            'end_time' => Carbon::parse($habitTime->end_time)->format('H:i:s'),
+            'start_date' => Carbon::parse($habitTime->start_time)->setTimezone($timezone)->format('Y-m-d'),
+            'start_time' => Carbon::parse($habitTime->start_time)->setTimezone($timezone)->format('H:i:s'),
+            'end_date' => $habitTime->end_time ? Carbon::parse($habitTime->end_time)->setTimezone($timezone)->format('Y-m-d') : null,
+            'end_time' => $habitTime->end_time ? Carbon::parse($habitTime->end_time)->setTimezone($timezone)->format('H:i:s') : null,
         ];
     }
 
