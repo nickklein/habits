@@ -17,12 +17,7 @@ class HabitEndListener
      */
     public function __construct(private LogsService $log, private PushoverService $pushoverService, private HabitInsightRepository $habitInsightRepository)
     {
-        $this->timeRanges = [
-            'startOfDay' => Carbon::today()->startOfDay(),
-            'endOfDay' => Carbon::today()->endOfDay(),
-            'startOfWeek' => Carbon::today()->startOfWeek(),
-            'endOfWeek' => Carbon::today()->endOfWeek(),
-        ];
+        //
     }
 
     /**
@@ -30,6 +25,13 @@ class HabitEndListener
      */
     public function handle(HabitEndedEvent $event): void
     {
+
+        $this->timeRanges = [
+            'startOfDay' => Carbon::today($event->timezone)->startOfDay()->setTimezone('UTC'),
+            'endOfDay' => Carbon::today($event->timezone)->endOfDay()->setTimezone('UTC'),
+            'startOfWeek' => Carbon::today($event->timezone)->startOfWeek()->setTimezone('UTC'),
+            'endOfWeek' => Carbon::today($event->timezone)->endOfWeek()->setTimezone('UTC'),
+        ];
 
         $habitUser = HabitUser::where('user_id', $event->userId)
             ->where('habit_id', $event->habitTime->habit_id)
@@ -48,7 +50,7 @@ class HabitEndListener
                 return;
             }
             // Get Daily Summary
-            $hasAchievedDailyGoal = $this->hasAchievedDailyGoal($event->userId, $habitUser->streak_time_goal, $event->habitTime->habit_id);
+            $hasAchievedDailyGoal = $this->hasAchievedDailyGoal($event->userId, $event->timezone, $habitUser->streak_time_goal, $event->habitTime->habit_id);
             if (!$hasAchievedDailyGoal) {
                 return;
             }
@@ -65,7 +67,7 @@ class HabitEndListener
         }
         // Check if log already exists by using daily date range
         // Get Daily Summary
-        $hasAchievedWeeklyGoal = $this->hasAchievedWeeklyGoal($event->userId, $habitUser->streak_time_goal, $event->habitTime->habit_id);
+        $hasAchievedWeeklyGoal = $this->hasAchievedWeeklyGoal($event->userId, $event->timezone, $habitUser->streak_time_goal, $event->habitTime->habit_id);
         if (!$hasAchievedWeeklyGoal) {
             return;
         }
@@ -79,9 +81,9 @@ class HabitEndListener
     /**
      * Checks if the user has achieved their daily goal
      **/
-    private function hasAchievedDailyGoal(int $userId, int $goalTime, int $habitId): bool
+    private function hasAchievedDailyGoal(int $userId, string $timezone = 'UTC', int $goalTime, int $habitId): bool
     {
-        $dailyTotals = $this->habitInsightRepository->getDailyTotalsByHabitId($userId, [$habitId], $this->timeRanges['startOfDay'], $this->timeRanges['endOfDay']);
+        $dailyTotals = $this->habitInsightRepository->getDailyTotalsByHabitId($userId, $timezone, [$habitId], $this->timeRanges['startOfDay'], $this->timeRanges['endOfDay']);
         if ($dailyTotals->first() && $goalTime >= $dailyTotals->first()->total_duration) {
             return false;
         }
@@ -93,9 +95,9 @@ class HabitEndListener
     /**
      * Checks if the user has achieved their weekly goal
      **/
-    private function hasAchievedWeeklyGoal(int $userId, int $goalTime, int $habitId): bool
+    private function hasAchievedWeeklyGoal(int $userId, string $timezone = 'UTC', int $goalTime, int $habitId): bool
     {
-        $weeklyTotals = $this->habitInsightRepository->getWeeklyTotalsByHabitId($userId, [$habitId], $this->timeRanges['startOfWeek'], $this->timeRanges['endOfWeek']);
+        $weeklyTotals = $this->habitInsightRepository->getWeeklyTotalsByHabitId($userId, $timezone, [$habitId], $this->timeRanges['startOfWeek'], $this->timeRanges['endOfWeek']);
         if ($weeklyTotals->first() && $goalTime >= $weeklyTotals->first()->total_duration) {
             return false;
         }

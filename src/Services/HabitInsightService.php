@@ -258,7 +258,7 @@ class HabitInsightService
         $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
         $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
 
-        event(new HabitEndedEvent($userId, $habitTime));
+        event(new HabitEndedEvent($userId, $timezone, $habitTime));
 
         return $habitTime->save();
     }

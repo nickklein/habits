@@ -80,7 +80,7 @@ class HabitService
         $habitTime->start_time = $startDateTime;
         $habitTime->end_time = $endDateTime;
         $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
-        event(new HabitEndedEvent($userId, $habitTime));
+        event(new HabitEndedEvent($userId, $timezone, $habitTime));
 
         return $habitTime->save();
     }
@@ -99,7 +99,7 @@ class HabitService
         $habitTime->start_time = $start;
         $habitTime->end_time = $end;
         $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
-        event(new HabitEndedEvent($userId, $habitTime));
+        event(new HabitEndedEvent($userId, $timezone, $habitTime));
 
         return $habitTime->save();
     }
