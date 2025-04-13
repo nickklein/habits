@@ -3,12 +3,10 @@
 namespace NickKlein\Habits\Controllers\Public;
 
 use App\Models\User;
-use App\Services\PushoverService;
 use Illuminate\Routing\Controller;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class HabitTimeController extends Controller
@@ -75,7 +73,7 @@ class HabitTimeController extends Controller
 
     /**
      * Ends all timers for a user (PUBLIC API)
-     * @todo obviously better to use oauth if this was a real app
+     * @deprecated
      * @param integer $userId
      * @param HabitInsightRepository $habitInsightRepository
      * @return void
@@ -94,7 +92,7 @@ class HabitTimeController extends Controller
 
     /**
      * Check if a habit is active (PUBLIC API)
-     *  @todo obviously better to use oauth if this was a real app
+     * 
      * @param integer $habitId
      * @param integer $userId
      * @param HabitInsightRepository $habitInsightRepository

@@ -586,10 +586,7 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startDate = Carbon::now($timezone)->subMonths(3)->startOfDay()->setTimezone('UTC')->toDateTimeString();
-        $endDate = Carbon::now($timezone)->endOfDay()->setTimezone('UTC')->toDateTimeString();
-
-        $weeklyTotals = $habitInsightRepository->getWeeklyTotalsByHabitId($userId, $timezone, $habitIds, $startDate, $endDate);
+        $weeklyTotals = $habitInsightRepository->getWeeklyTotalsByHabitId($userId, $timezone, $habitIds);
 
         $currentStreakCount = 0;
         $longestStreakCount = 0;
