@@ -51,16 +51,16 @@ class HabitInsightService
      * @param HabitInsightRepository $insightRepository
      * @return array
      */
-    public function getDailySummaryForHabits(int $userId, Collection $habitsUser, HabitService $service, HabitInsightRepository $insightRepository): array
+    public function getDailySummaryForHabits(int $userId, string $timezone = 'UTC', Collection $habitsUser, HabitService $service, HabitInsightRepository $insightRepository): array
     {
         $dateRanges = [
             'daily' => [
-                'start' => Carbon::today()->startOfDay(),
-                'end' => Carbon::today()->endOfDay(),
+                'start' => Carbon::today($timezone)->startOfDay(),
+                'end' => Carbon::today($timezone)->endOfDay(),
             ],
             'weekly' => [
-                'start' => Carbon::now()->startOfWeek(),
-                'end' => Carbon::now()->endOfWeek(),
+                'start' => Carbon::now($timezone)->startOfWeek(),
+                'end' => Carbon::now($timezone)->endOfWeek(),
             ]
         ];
         $group = 0;
@@ -123,9 +123,10 @@ class HabitInsightService
      * @todo dependency injection for HabitInsightRepository etc
      *
      * @param integer $userId
+     * @param string $timezone
      * @return array
      */
-    public function generateStreakSummary(int $userId): array
+    public function generateStreakSummary(int $userId, string $timezone = 'UTC'): array
     {
         // WARNING. Really messy code that needs to be cleaned up. 
         $streakSummary = [];
@@ -137,10 +138,10 @@ class HabitInsightService
         $notification = '';
         $insightsRepository = app(HabitInsightRepository::class);
         $habitService = app(HabitService::class);
-        $startOfDay = Carbon::today()->startOfDay();
-        $endOfDay = Carbon::today()->endOfDay();
-        $startOfWeek = Carbon::today()->startOfWeek();
-        $endOfWeek = Carbon::today()->endOfWeek();
+        $startOfDay = Carbon::today($timezone)->startOfDay();
+        $endOfDay = Carbon::today($timezone)->endOfDay();
+        $startOfWeek = Carbon::today($timezone)->startOfWeek();
+        $endOfWeek = Carbon::today($timezone)->endOfWeek();
 
         foreach($habitUser as $item) {
             $habitIdsArray = $this->fetchHabitIdsBasedOnHierarchy($item);
@@ -189,20 +190,21 @@ class HabitInsightService
      * This is for phone notifications
      *
      * @param integer $userId
+     * @param string $timezone
      * @return string
      */
-    public function generateWeeklyNotifications(int $userId)
+    public function generateWeeklyNotifications(int $userId, string $timezone = 'UTC')
     {
 
         $habits = Habit::whereIn('habit_id', [10, 12, 18, 5, 9])->get();
         $insightsRepository = app(HabitInsightRepository::class);
         $habitService = app(HabitService::class);
 
-        $startOfRangeThisWeek = Carbon::now()->subWeeks(0)->subDays(6);
-        $endOfRangeThisWeek = Carbon::now()->subWeeks(0);
+        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6);
+        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0);
 
-        $startOfRangeLastWeek = Carbon::now()->subWeeks(1)->subDays(6);
-        $endOfRangeLastWeek = Carbon::now()->subWeeks(1);
+        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6);
+        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1);
 
         $notification = '';
         foreach ($habits as $habit) {
@@ -263,21 +265,16 @@ class HabitInsightService
     /**
      * Get Daily Highlights
      *
-     * @param integer $userId
-     * @param integer $habitId
-     * @param HabitService $habitService
-     * @param HabitInsightRepository $habitInsightRepository
-     * @return array
      */
-    public function getDailySummaryHighlights(HabitUser $habitUser, HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
+    public function getDailySummaryHighlights(HabitUser $habitUser, string $timezone = 'UTC', HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $yesterday = Carbon::yesterday()->hour(0);
-        $yesterdayEnd = Carbon::yesterday()->hour(24);
+        $yesterday = Carbon::yesterday($timezone)->hour(0);
+        $yesterdayEnd = Carbon::yesterday($timezone)->hour(24);
 
-        $dayBeforeYesterday = Carbon::today()->subDays(2)->hour(0);
-        $dayBeforeYesterdayEnd = Carbon::today()->subDays(2)->hour(24);
+        $dayBeforeYesterday = Carbon::today($timezone)->subDays(2)->hour(0);
+        $dayBeforeYesterdayEnd = Carbon::today($timezone)->subDays(2)->hour(24);
 
         // Grab the values for yesterday and the day before yesterday
         $yesterdayCollection = $habitInsightRepository->getDailyTotalsByHabitId($habitUser->user_id, $habitIds, $yesterday, $yesterdayEnd);
@@ -313,21 +310,16 @@ class HabitInsightService
     /**
      * Get Weekly Highlights
      *
-     * @param integer $userId
-     * @param integer $habitId
-     * @param HabitService $habitService
-     * @param HabitInsightRepository $habitInsightRepository
-     * @return array
      */
-    public function getWeeklyAverageHighlights(HabitUser $habitUser, HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
+    public function getWeeklyAverageHighlights(HabitUser $habitUser, string $timezone = 'UTC', HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisWeek = Carbon::now()->subWeeks(0)->subDays(6);
-        $endOfRangeThisWeek = Carbon::now()->subWeeks(0);
+        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6);
+        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0);
 
-        $startOfRangeLastWeek = Carbon::now()->subWeeks(1)->subDays(6);
-        $endOfRangeLastWeek = Carbon::now()->subWeeks(1);
+        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6);
+        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1);
 
         $thisWeek = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisWeek, $endOfRangeThisWeek, 7);
         $weekBefore = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastWeek, $endOfRangeLastWeek, 7);
@@ -365,15 +357,15 @@ class HabitInsightService
      * @param HabitInsightRepository $habitInsightRepository
      * @return array
      */
-    public function weeklySummaryHighlights(HabitUser $habitUser, HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
+    public function weeklySummaryHighlights(HabitUser $habitUser, string $timezone = 'UTC', HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisWeek = Carbon::now()->subWeeks(0)->subDays(6);
-        $endOfRangeThisWeek = Carbon::now()->subWeeks(0);
+        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6);
+        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0);
 
-        $startOfRangeLastWeek = Carbon::now()->subWeeks(1)->subDays(6);
-        $endOfRangeLastWeek = Carbon::now()->subWeeks(1);
+        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6);
+        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1);
 
         $thisWeek = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisWeek, $endOfRangeThisWeek);
         $weekBefore = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastWeek, $endOfRangeLastWeek);
@@ -408,21 +400,16 @@ class HabitInsightService
     /**
      * Get monthly average highlights
      *
-     * @param integer $userId
-     * @param integer $habitId
-     * @param HabitService $habitService
-     * @param HabitInsightRepository $habitInsightRepository
-     * @return array
      */
-    public function getMonthlyAverageHighlights(HabitUser $habitUser, HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
+    public function getMonthlyAverageHighlights(HabitUser $habitUser, string $timezone = 'UTC', HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisMonth = Carbon::now()->subMonths(1);
-        $endOfRangeThisMonth = Carbon::now();
+        $startOfRangeThisMonth = Carbon::now($timezone)->subMonths(1);
+        $endOfRangeThisMonth = Carbon::now($timezone);
 
-        $startOfRangeLastMonth = Carbon::now()->subMonths(2);
-        $endOfRangeLastMonth = Carbon::now()->subMonths(1);
+        $startOfRangeLastMonth = Carbon::now($timezone)->subMonths(2);
+        $endOfRangeLastMonth = Carbon::now($timezone)->subMonths(1);
 
         $thisMonth = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisMonth, $endOfRangeThisMonth, $startOfRangeThisMonth->diffInDays($endOfRangeThisMonth));
         $lastMonth = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastMonth, $endOfRangeLastMonth, $startOfRangeLastMonth->diffInDays($endOfRangeLastMonth));
@@ -456,20 +443,16 @@ class HabitInsightService
     /**
      * Get Monthly Summary Highlights
      *
-     * @param HabitUser $habitUser
-     * @param HabitService $habitService
-     * @param HabitInsightRepository $habitInsightRepository
-     * @return array
      */
-    public function getMonthlySummaryHighlights(HabitUser $habitUser, HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
+    public function getMonthlySummaryHighlights(HabitUser $habitUser, string $timezone = 'UTC', HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisMonth = Carbon::now()->subMonths(1);
-        $endOfRangeThisMonth = Carbon::now();
+        $startOfRangeThisMonth = Carbon::now($timezone)->subMonths(1);
+        $endOfRangeThisMonth = Carbon::now($timezone);
 
-        $startOfRangeLastMonth = Carbon::now()->subMonths(2);
-        $endOfRangeLastMonth = Carbon::now()->subMonths(1);
+        $startOfRangeLastMonth = Carbon::now($timezone)->subMonths(2);
+        $endOfRangeLastMonth = Carbon::now($timezone)->subMonths(1);
 
         $thisWeek = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisMonth, $endOfRangeThisMonth);
         $weekBefore = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastMonth, $endOfRangeLastMonth);
@@ -504,20 +487,16 @@ class HabitInsightService
     /**
      * Get Yearly Summary highlights
      *
-     * @param HabitUser $habitUser
-     * @param HabitService $habitService
-     * @param HabitInsightRepository $habitInsightRepository
-     * @return array
      */
-    public function getYearlySummaryHighlights(HabitUser $habitUser, HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
+    public function getYearlySummaryHighlights(HabitUser $habitUser, string $timezone = 'UTC', HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisYear = Carbon::now()->startOfYear();
-        $endOfRangeThisYear = Carbon::now()->endOfYear();
+        $startOfRangeThisYear = Carbon::now($timezone)->startOfYear();
+        $endOfRangeThisYear = Carbon::now($timezone)->endOfYear();
 
-        $startOfRangeLastYear = Carbon::now()->subYears(1)->startOfYear();
-        $endOfRangeLastYear = Carbon::now()->subYears(1)->endOfYear();
+        $startOfRangeLastYear = Carbon::now($timezone)->subYears(1)->startOfYear();
+        $endOfRangeLastYear = Carbon::now($timezone)->subYears(1)->endOfYear();
 
         $thisYear = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisYear, $endOfRangeThisYear);
         $lastYear = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastYear, $endOfRangeLastYear);
@@ -572,12 +551,13 @@ class HabitInsightService
      *
      * @param HabitUser $habitUser
      * @param integer $userId
+     * @param string $timezone
      * @param integer $habitId
      * @param HabitService $habitService
      * @param HabitInsightRepository $habitInsightRepository
      * @return array
      */
-    public function getStreaks(HabitUser $habitUser, int $userId, int $habitId, HabitInsightRepository $habitInsightRepository): array
+    public function getStreaks(HabitUser $habitUser, int $userId, string $timezone = 'UTC', int $habitId, HabitInsightRepository $habitInsightRepository): array
     {
         // Not a goal oriented habit, then bail early
         if (empty($habitUser->streak_time_goal)) {
@@ -585,10 +565,10 @@ class HabitInsightService
         }
 
         if ($habitUser->streak_time_type === 'weekly') {
-            return $this->getWeeklyStreaks($habitUser, $userId, $habitId, $habitInsightRepository);
+            return $this->getWeeklyStreaks($habitUser, $userId, $timezone, $habitId, $habitInsightRepository);
         }
 
-        return $this->getDailyStreaks($habitUser, $userId, $habitId, $habitInsightRepository);
+        return $this->getDailyStreaks($habitUser, $userId, $timezone, $habitId, $habitInsightRepository);
     }
 
     /**
@@ -596,11 +576,12 @@ class HabitInsightService
      *
      * @param HabitUser $habitUser
      * @param integer $userId
+     * @param string $timezone
      * @param integer $habitId
      * @param HabitInsightRepository $habitInsightRepository
      * @return array
      */
-    public function getWeeklyStreaks(HabitUser $habitUser, int $userId, int $habitId, HabitInsightRepository $habitInsightRepository): array
+    public function getWeeklyStreaks(HabitUser $habitUser, int $userId, string $timezone = 'UTC', int $habitId, HabitInsightRepository $habitInsightRepository): array
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
@@ -610,12 +591,12 @@ class HabitInsightService
         $longestStreakCount = 0;
         $totalStreaks = 0;
         $previousWeek = null;
-        $thisWeek = Carbon::now()->startOfWeek(); // Actual this week
+        $thisWeek = Carbon::now($timezone)->startOfWeek(); // Actual this week
 
         foreach ($weeklyTotals as $weeklyTotal) {
             $year = substr($weeklyTotal->week, 0, 4);
             $week = substr($weeklyTotal->week, 4, 2);
-            $currentWeek = Carbon::createFromDate($year)->setISODate($year, $week)->startOfWeek();
+            $currentWeek = Carbon::createFromDate($year, null, null, $timezone)->setISODate($year, $week)->startOfWeek();
 
             if ($previousWeek && $previousWeek->eq($currentWeek->copy()->subWeek()) && $weeklyTotal->total_duration >= $habitUser->streak_time_goal) {
                 $currentStreakCount++;  // Continue the streak
@@ -653,11 +634,12 @@ class HabitInsightService
      *
      * @param HabitUser $habitUser
      * @param integer $userId
+     * @param string $timezone
      * @param integer $habitId
      * @param HabitInsightRepository $habitInsightRepository
      * @return array
      */
-    public function getDailyStreaks(HabitUser $habitUser, int $userId, int $habitId, HabitInsightRepository $habitInsightRepository): array
+    public function getDailyStreaks(HabitUser $habitUser, int $userId, string $timezone = 'UTC',  int $habitId, HabitInsightRepository $habitInsightRepository): array
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
