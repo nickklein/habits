@@ -586,18 +586,21 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $weeklyTotals = $habitInsightRepository->getWeeklyTotalsByHabitId($userId, $habitIds);
+        $startDate = Carbon::now($timezone)->subMonths(3)->startOfDay()->setTimezone('UTC')->toDateTimeString();
+        $endDate = Carbon::now($timezone)->endOfDay()->setTimezone('UTC')->toDateTimeString();
+
+        $weeklyTotals = $habitInsightRepository->getWeeklyTotalsByHabitId($userId, $habitIds, $startDate, $endDate);
 
         $currentStreakCount = 0;
         $longestStreakCount = 0;
         $totalStreaks = 0;
         $previousWeek = null;
-        $thisWeek = Carbon::now($timezone)->startOfWeek(); // Actual this week
+        $thisWeek = Carbon::now($timezone)->startOfWeek()->setTimezone('UTC');
 
         foreach ($weeklyTotals as $weeklyTotal) {
             $year = substr($weeklyTotal->week, 0, 4);
             $week = substr($weeklyTotal->week, 4, 2);
-            $currentWeek = Carbon::createFromDate($year, null, null, $timezone)->setISODate($year, $week)->startOfWeek();
+            $currentWeek = Carbon::createFromDate($year, null, null, $timezone)->setISODate($year, $week)->startOfWeek()->setTimezone('UTC');
 
             if ($previousWeek && $previousWeek->eq($currentWeek->copy()->subWeek()) && $weeklyTotal->total_duration >= $habitUser->streak_time_goal) {
                 $currentStreakCount++;  // Continue the streak

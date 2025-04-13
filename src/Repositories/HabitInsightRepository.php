@@ -57,17 +57,39 @@ class HabitInsightRepository
      * @param integer $habitId
      * @return Collection
      */
-    public function getDailyTotalsByHabitId(int $userId, array $habitIds, ?string $startRange = null, ?string $endRange = null): Collection
+    public function getDailyTotalsByHabitId(int $userId, array $habitIds, ?string $startRange = null, ?string $endRange = null, string $timezone = 'UTC')
     {
-        return HabitTime::select(DB::raw('DATE(start_time) as date'), DB::raw('SUM(duration) as total_duration'))
+        // Get the raw data first without grouping
+        $query = HabitTime::select('start_time', 'duration')
             ->where('user_id', $userId)
             ->whereIn('habit_id', $habitIds)
             ->when($startRange, function ($query) use ($startRange, $endRange) {
                 return $query->whereBetween('start_time', [$startRange, $endRange]);
             })
-            ->groupBy(DB::raw('DATE(start_time)'))
-            ->orderBy('date')
-            ->get();
+            ->orderBy('start_time');
+        
+        $rawData = $query->get();
+        
+        // Group it by user's local date
+        $groupedByUserDate = collect();
+        
+        foreach ($rawData as $record) {
+            // Convert UTC time to user's timezone to get the correct date
+            $localDate = Carbon::parse($record->start_time)
+                ->setTimezone($timezone)
+                ->format('Y-m-d');
+            
+            if (!isset($groupedByUserDate[$localDate])) {
+                $groupedByUserDate[$localDate] = (object)[
+                    'date' => $localDate,
+                    'total_duration' => 0
+                ];
+            }
+            
+            $groupedByUserDate[$localDate]->total_duration += $record->duration;
+        }
+        
+        return $groupedByUserDate->values()->sortBy('date')->values();
     }
 
 
@@ -172,6 +194,7 @@ class HabitInsightRepository
             ->get();
 
         foreach ($activeHabits as $habitTime) {
+            $habitTime->end_time = date('Y-m-d H:i:s');
             $habitTime->end_time = Carbon::now('UTC');
             $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
             event(new HabitEndedEvent($userId, $habitTime));
