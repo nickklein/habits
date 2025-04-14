@@ -45,7 +45,7 @@ class HabitEndListener
 
 
         if ($habitUser->streak_time_type === 'daily') {
-            $exists = $this->log->doesLogExistToday(['type' => 'habits.completed', 'description' => $habitUser->id]);
+            $exists = $this->log->doesLogExistToday(['type' => 'habits.completed', 'description' => $habitUser->id], $event->timezone);
             if ($exists) {
                 return;
             }
@@ -61,7 +61,7 @@ class HabitEndListener
             return;
         }
 
-        $exists = $this->log->doesLogExistThisWeek(['type' => 'habits.completed', 'description' => $habitUser->id]);
+        $exists = $this->log->doesLogExistThisWeek(['type' => 'habits.completed', 'description' => $habitUser->id], $event->timezone);
         if ($exists) {
             return;
         }
