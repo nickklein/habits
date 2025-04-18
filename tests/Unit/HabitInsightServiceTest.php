@@ -35,7 +35,7 @@ class HabitInsightServiceTest extends TestCase
     /*         'habit_id' => $habit->habit_id, */
     /*         'user_id' => $user->id ?? 1, */
     /*         'habit_id' => $faker->numberBetween(1, 8), */
-    /*         'streak_time_goal' => $faker->numberBetween(60 * 5, 3600 * 5), */
+    /*         'streak_goal' => $faker->numberBetween(60 * 5, 3600 * 5), */
     /*         'streak_time_type' => $faker->randomElement(['daily', 'weekly', 'monthly']), */
     /*         'streak_type' => $faker->randomElement(['time', 'count']), */
     /*     ]); */
@@ -76,7 +76,7 @@ class HabitInsightServiceTest extends TestCase
             );
 
         $habitInsightService = $this->app->make(HabitInsightService::class);
-        $result = $habitInsightService->getDailySummaryHighlights($habitUser, $mockHabitService, $mockHabitInsightRepository);
+        $result = $habitInsightService->getDailySummaryHighlights($habitUser, 'UTC', $mockHabitService, $mockHabitInsightRepository);
 
         $this->assertEquals('You did 90 more minutes yesterday than you did the day before', $result['description']);
 
@@ -116,7 +116,7 @@ class HabitInsightServiceTest extends TestCase
         $habitInsightService = $this->app->make(HabitInsightService::class);
 
         // Call the method to test
-        $result = $habitInsightService->getWeeklyAverageHighlights($habitUser, $mockeryHabitService, $habitInsightsRepository);
+        $result = $habitInsightService->getWeeklyAverageHighlights($habitUser, 'UTC', $mockeryHabitService, $habitInsightsRepository);
 
         // Define your assertions
         $this->assertEquals(20000, $result['barOne']['number']);
@@ -150,7 +150,7 @@ class HabitInsightServiceTest extends TestCase
         $habitInsightService = $this->app->make(HabitInsightService::class);
 
         // Call the method to test
-        $result = $habitInsightService->getMonthlyAverageHighlights($habitUser, $mockHabitService, $habitInsightRepository);
+        $result = $habitInsightService->getMonthlyAverageHighlights($habitUser, 'UTC', $mockHabitService, $habitInsightRepository);
 
         // Define your assertions
         $this->assertEquals(20000, $result['barOne']['number']);
@@ -183,7 +183,7 @@ class HabitInsightServiceTest extends TestCase
         $habitInsightService = $this->app->make(HabitInsightService::class);
 
         // Call the method to test
-        $result = $habitInsightService->getYearlySummaryHighlights($habitUser, $mockHabitService, $habitInsightRepository);
+        $result = $habitInsightService->getYearlySummaryHighlights($habitUser, 'UTC', $mockHabitService, $habitInsightRepository);
 
         // Define your assertions
         $this->assertEquals(20000, $result['barOne']['number']);

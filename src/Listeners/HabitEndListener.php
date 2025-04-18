@@ -39,7 +39,7 @@ class HabitEndListener
         $habitTime = $event->habitTime;
 
         // If there's no goal then bail
-        if (empty($habitUser->streak_time_goal)) {
+        if (empty($habitUser->streak_goal)) {
             return;
         }
 
@@ -50,7 +50,7 @@ class HabitEndListener
                 return;
             }
             // Get Daily Summary
-            $hasAchievedDailyGoal = $this->hasAchievedDailyGoal($event->userId, $event->timezone, $habitUser->streak_time_goal, $event->habitTime->habit_id);
+            $hasAchievedDailyGoal = $this->hasAchievedDailyGoal($event->userId, $event->timezone, $habitUser->streak_goal, $event->habitTime->habit_id);
             if (!$hasAchievedDailyGoal) {
                 return;
             }
@@ -67,7 +67,7 @@ class HabitEndListener
         }
         // Check if log already exists by using daily date range
         // Get Daily Summary
-        $hasAchievedWeeklyGoal = $this->hasAchievedWeeklyGoal($event->userId, $event->timezone, $habitUser->streak_time_goal, $event->habitTime->habit_id);
+        $hasAchievedWeeklyGoal = $this->hasAchievedWeeklyGoal($event->userId, $event->timezone, $habitUser->streak_goal, $event->habitTime->habit_id);
         if (!$hasAchievedWeeklyGoal) {
             return;
         }

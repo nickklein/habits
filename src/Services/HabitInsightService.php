@@ -32,7 +32,12 @@ class HabitInsightService
         14 => 'sky',
         15 => 'emerald',
         16 => 'violet',
-        17 => 'rose'
+        17 => 'rose',
+        18 => 'rose',
+        19 => 'cyan',
+        20 => 'sky',
+        21 => 'emerald',
+        22 => 'violet',
     ];
 
     public function __construct()
@@ -133,7 +138,7 @@ class HabitInsightService
         $streakSummary = [];
         $habitUser = HabitUser::with(['habit', 'children'])->where('user_id', $userId)
             ->whereIn('habit_id', [10, 11, 5, 9, 14, 15, 16, 19, 8, 4])
-            ->whereNotNull('streak_time_goal')
+            ->whereNotNull('streak_goal')
             ->orderBy('streak_time_type', 'ASC')
             ->get();
         $notification = '';
@@ -150,7 +155,7 @@ class HabitInsightService
             if ($item->streak_time_type === 'daily') {
                 $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, $timezone, $habitIdsArray, $startOfDay, $endOfDay);
                 // if the total duration is higher than the goal, then don't show in the notification
-                if ($dailyTotals->first() && $item->streak_time_goal < $dailyTotals->first()->total_duration) {
+                if ($dailyTotals->first() && $item->streak_goal < $dailyTotals->first()->total_duration) {
                     continue;
                 }
 
@@ -159,7 +164,7 @@ class HabitInsightService
                 $streakSummary[] = [
                     'name' => $name,
                     'type' => 'd',
-                    'goal' => round($item->streak_time_goal / 60) . 'm',
+                    'goal' => round($item->streak_goal / 60) . 'm',
                     'total' => $total,
                 ];
             }
@@ -167,7 +172,7 @@ class HabitInsightService
             if ($item->streak_time_type === 'weekly') {
                 $weeklyTotals = $insightsRepository->getWeeklyTotalsByHabitId($userId, $timezone, $habitIdsArray, $startOfWeek, $endOfWeek);
                 // if the total duration is higher than the goal, then don't show in the notification
-                if ($weeklyTotals->first() && $item->streak_time_goal < $weeklyTotals->first()->total_duration) {
+                if ($weeklyTotals->first() && $item->streak_goal < $weeklyTotals->first()->total_duration) {
                     continue;
                 }
 
@@ -176,7 +181,7 @@ class HabitInsightService
                 $streakSummary[] = [
                     'name' => $name,
                     'type' => 'w',
-                    'goal' => round($item->streak_time_goal / 60) . 'm',
+                    'goal' => round($item->streak_goal / 60) . 'm',
                     'total' => $total,
                 ];
                 $notification .= $name . '(w): ' . $total . ', ';
@@ -561,7 +566,7 @@ class HabitInsightService
     public function getStreaks(HabitUser $habitUser, int $userId, string $timezone = 'UTC', int $habitId, HabitInsightRepository $habitInsightRepository): array
     {
         // Not a goal oriented habit, then bail early
-        if (empty($habitUser->streak_time_goal)) {
+        if (empty($habitUser->streak_goal)) {
             return [];
         }
 
@@ -599,12 +604,12 @@ class HabitInsightService
             $week = substr($weeklyTotal->week, 4, 2);
             $currentWeek = Carbon::createFromDate($year, null, null, $timezone)->setISODate($year, $week)->startOfWeek()->setTimezone('UTC');
 
-            if ($previousWeek && $previousWeek->eq($currentWeek->copy()->subWeek()) && $weeklyTotal->total_duration >= $habitUser->streak_time_goal) {
+            if ($previousWeek && $previousWeek->eq($currentWeek->copy()->subWeek()) && $weeklyTotal->total_duration >= $habitUser->streak_goal) {
                 $currentStreakCount++;  // Continue the streak
             } else {
                 // If current week is the same as this week, we are continuing the streak.
                 if (!$currentWeek->eq($thisWeek)) {
-                    $currentStreakCount = ($weeklyTotal->total_duration >= $habitUser->streak_time_goal) ? 1 : 0;
+                    $currentStreakCount = ($weeklyTotal->total_duration >= $habitUser->streak_goal) ? 1 : 0;
                 }
             }
 
@@ -612,7 +617,7 @@ class HabitInsightService
             $longestStreakCount = max($longestStreakCount, $currentStreakCount);
 
             // If the weekly goal is met, increment the total streaks.
-            if ($weeklyTotal->total_duration >= $habitUser->streak_time_goal) {
+            if ($weeklyTotal->total_duration >= $habitUser->streak_goal) {
                 $totalStreaks++;
             }
 
@@ -620,7 +625,7 @@ class HabitInsightService
         }
 
         return [
-            'goals' => ($habitUser->streak_time_goal / 60) . ' minutes',
+            'goals' => ($habitUser->streak_goal / 60) . ' minutes',
             'goalsType' => 'Weeks',
             'currentStreak' => $currentStreakCount,
             'longestStreak' => $longestStreakCount,
@@ -654,22 +659,22 @@ class HabitInsightService
         foreach ($dailyTotals as $dailyTotal) {
             $currentDate = Carbon::parse($dailyTotal->date);
 
-            if ($previousDate && $previousDate->eq($currentDate->copy()->subDay(1)) && $dailyTotal->total_duration >= $habitUser->streak_time_goal) {
+            if ($previousDate && $previousDate->eq($currentDate->copy()->subDay(1)) && $dailyTotal->total_duration >= $habitUser->streak_goal) {
                 // We are continuing the streak.
                 $currentStreakCount++;
             } else {
                 // This is either a start of a new streak or a day that doesn't meet the streak criteria.
                 if (!$currentDate->eq($today)) {
                     // Reset the current streak count if the streak is broken or start a new streak if the goal is met.
-                    $currentStreakCount = ($dailyTotal->total_duration >= $habitUser->streak_time_goal) ? 1 : 0;
+                    $currentStreakCount = ($dailyTotal->total_duration >= $habitUser->streak_goal) ? 1 : 0;
                 }
             }
 
             // Update the longest streak if the current streak exceeds it.
             $longestStreakCount = max($longestStreakCount, $currentStreakCount);
 
-            // Increment totalStreaks if the streak_time_goal is met for this day.
-            if ($dailyTotal->total_duration >= $habitUser->streak_time_goal) {
+            // Increment totalStreaks if the streak_goal is met for this day.
+            if ($dailyTotal->total_duration >= $habitUser->streak_goal) {
                 $totalStreaks++;
             }
 
@@ -679,7 +684,7 @@ class HabitInsightService
 
 
         return [
-            'goals' => ($habitUser->streak_time_goal / 60) . ' minutes',
+            'goals' => ($habitUser->streak_goal / 60) . ' minutes',
             'goalsType' => 'Days',
             'currentStreak' => $currentStreakCount,
             'longestStreak' => $longestStreakCount,
@@ -765,8 +770,8 @@ class HabitInsightService
     private function convertGoalTimeToSummaryPageFormat(HabitService $service, HabitUser $habit): array
     {
         // Check if it's a goal type habit, some aren't.
-        if (isset($habit->streak_time_goal)) {
-            $convertedGoalTime = $service->convertSecondsToMinutesOrHoursV2($habit->streak_time_goal);
+        if (isset($habit->streak_goal)) {
+            $convertedGoalTime = $service->convertSecondsToMinutesOrHoursV2($habit->streak_goal);
             return [
                 'total' => $convertedGoalTime['value'],
                 'unit' => $convertedGoalTime['unit'],

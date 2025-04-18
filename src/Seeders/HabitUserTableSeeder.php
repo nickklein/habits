@@ -40,9 +40,9 @@ class HabitUserTableSeeder
                 [
                     'habit_id' => $habit->habit_id,
                     'user_id' => $user->id ?? 1,
-                    'streak_time_goal' => $faker->numberBetween(60 * 5, 3600),
+                    'streak_goal' => $faker->numberBetween(60 * 5, 3600),
                     'streak_time_type' => $faker->randomElement(['daily', 'weekly']),
-                    'streak_type' => $faker->randomElement(['time']),
+                    'habit_type' => $faker->randomElement(['time']),
                 ]
             );
         }
