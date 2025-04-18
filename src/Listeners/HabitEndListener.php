@@ -23,8 +23,10 @@ class HabitEndListener
     /**
      * Handle the event.
      */
-    public function handle(HabitEndedEvent $event): void
+    public function handle(HabitEndedEvent $event)
     {
+        // TODO: Something going wrong here. Troubleshoot this at a later date
+        return;
 
         $this->timeRanges = [
             'startOfDay' => Carbon::today($event->timezone)->startOfDay()->setTimezone('UTC'),
