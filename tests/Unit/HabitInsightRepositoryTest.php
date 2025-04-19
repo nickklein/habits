@@ -198,7 +198,7 @@ class HabitInsightRepositoryTest extends TestCase
         ]);
 
 
-        $results = $repository->getDailyTotalsByHabitId($userId, [$habitId], $startRange, $endRange);
+        $results = $repository->getDailyTotalsByHabitId($userId, 'UTC', [$habitId], $startRange, $endRange);
 
         $this->assertCount(3, $results); // We expect 3 records for the seeded data
 

@@ -190,7 +190,6 @@ class HabitInsightRepository
             ->get();
 
         foreach ($activeHabits as $habitTime) {
-            $habitTime->end_time = date('Y-m-d H:i:s');
             $habitTime->end_time = Carbon::now('UTC');
             $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
             event(new HabitEndedEvent($userId, $timezone, $habitTime));
