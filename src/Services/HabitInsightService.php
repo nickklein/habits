@@ -10,6 +10,7 @@ use NickKlein\Habits\Repositories\HabitInsightRepository;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use NickKlein\Habits\Events\HabitEndedEvent;
+use NickKlein\Habits\Services\HabitTypeFactory;
 
 class HabitInsightService
 {
@@ -40,7 +41,7 @@ class HabitInsightService
         22 => 'violet',
     ];
 
-    public function __construct()
+    public function __construct(private HabitTypeFactory $habitTypeFactory)
     {
         //
     }
@@ -91,14 +92,19 @@ class HabitInsightService
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
         $time = $this->fetchTotalDurationBasedOnStreakType($habitUser, $userId, $timezone, $habitIds, $dateRanges, $insightRepository);
 
-        $currentTime = $this->convertTimeToSummaryPageFormat($service, $time);
-        $goalTime = $this->convertGoalTimeToSummaryPageFormat($service, $habitUser);
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+
+        $currentValue = $handler->formatValue($time);
+        $goalValue = $handler->formatGoal($habitUser);
 
         return [
             'id' => $habitUser->habit_id,
             'name' => $habitUser->habit->name,
-            'current' => $currentTime,
-            'goal' => $goalTime,
+            'current' => [
+                'total' => $currentValue['value'],
+                'unit' => $currentValue['unit'],
+            ],
+            'goal' => $goalValue,
             'color' => $color,
         ];
     }
@@ -282,22 +288,27 @@ class HabitInsightService
         $dayBeforeYesterday = Carbon::today($timezone)->subDays(2)->hour(0)->setTimezone('UTC');
         $dayBeforeYesterdayEnd = Carbon::today($timezone)->subDays(2)->hour(24)->setTimezone('UTC');
 
+
         // Grab the values for yesterday and the day before yesterday
         $yesterdayCollection = $habitInsightRepository->getDailyTotalsByHabitId($habitUser->user_id, $timezone, $habitIds, $yesterday, $yesterdayEnd);
         $dayOfBeforeYesterdayCollection = $habitInsightRepository->getDailyTotalsByHabitId($habitUser->user_id, $timezone, $habitIds, $dayBeforeYesterday, $dayBeforeYesterdayEnd);
 
-        // Convert values to hours/minutes
-        $yesterdayValues = $habitService->convertSecondsToMinutesOrHoursV2($yesterdayCollection->sum('total_duration'));
-        $dayOfBeforeYesterdayValues = $habitService->convertSecondsToMinutesOrHoursV2($dayOfBeforeYesterdayCollection->sum('total_duration'));
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+        $yesterdayValues = $handler->formatValue($yesterdayCollection->sum('total_duration'));
+        $dayOfBeforeYesterdayValues = $handler->formatValue($dayOfBeforeYesterdayCollection->sum('total_duration'));
 
-        // Calculates the percentage difference between two numbers, where 1 is 100%, and the other one is the percentage difference
-        $percentages = $this->calculatePercentageDifferenceBetweenTwoNumbers($yesterdayCollection->sum('total_duration'), $dayOfBeforeYesterdayCollection->sum('total_duration'));
+        $percentages = $handler->calculatePercentageDifference($yesterdayCollection->sum('total_duration'), $dayOfBeforeYesterdayCollection->sum('total_duration'));
 
         // The difference between the two numbers in minutes
-        $minuteDifference = abs($yesterdayCollection->sum('total_duration') - $dayOfBeforeYesterdayCollection->sum('total_duration')) / 60;
+        $difference = $handler->formatDifference($yesterdayCollection->sum('total_duration'), $dayOfBeforeYesterdayCollection->sum('total_duration'));
+
+        // Get units
+        $unit = $handler->getUnitLabelFull();
+        $differenceQualifier = $yesterdayCollection->sum('total_duration') > $dayOfBeforeYesterdayCollection->sum('total_duration') ? 'more' : 'less';
+
 
         return [
-            'description' => 'You did ' . round($minuteDifference) . ' ' . ($yesterdayCollection->sum('total_duration') > $dayOfBeforeYesterdayCollection->sum('total_duration') ? 'more' : 'less') . ' minutes yesterday than you did the day before',
+            'description' => "You did {$difference} {$differenceQualifier} {$unit} yesterday than you did the day before",
             'barOne' => [
                 "number" => $yesterdayValues['value'],
                 "unit" => $yesterdayValues['unit_full'],
@@ -330,17 +341,20 @@ class HabitInsightService
         $thisWeek = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisWeek, $endOfRangeThisWeek, 7);
         $weekBefore = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastWeek, $endOfRangeLastWeek, 7);
 
-        // Convert values to hours/minutes
-        $thisWeekValues = $habitService->convertSecondsToMinutesOrHoursV2($thisWeek);
-        $weekBeforeValues = $habitService->convertSecondsToMinutesOrHoursV2($weekBefore);
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        $percentages = $this->calculatePercentageDifferenceBetweenTwoNumbers($thisWeek, $weekBefore);
+        $thisWeekValues = $handler->formatValue($thisWeek);
+        $weekBeforeValues = $handler->formatValue($weekBefore);
 
+        $percentages = $handler->calculatePercentageDifference($thisWeek, $weekBefore);
+
+        $unit = $handler->getUnitLabelFull();
         // The difference between the two numbers in minutes
-        $minuteDifference = round(abs($weekBefore - $thisWeek) / 60);
+        $difference = $handler->formatDifference($weekBefore, $thisWeek);
+        $differenceQualifier = $weekBefore < $thisWeek ? 'more' : 'less';
 
         return [
-            'description' => 'Last week, you averaged ' . $minuteDifference . ' ' . ($weekBefore < $thisWeek ? "more" : "fewer") . ' minutes than the week before',
+            'description' => "Last week, you averaged {$difference} {$differenceQualifier} {$unit} than the week before",
             'barOne' => [
                 "number" => $thisWeekValues['value'],
                 "unit" => $thisWeekValues['unit_full'] . ' / day',
@@ -377,17 +391,19 @@ class HabitInsightService
         $weekBefore = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastWeek, $endOfRangeLastWeek);
 
         // Convert values to hours/minutes
-        $thisWeekValues = $habitService->convertSecondsToMinutesOrHoursV2($thisWeek);
-        $weekBeforeValues = $habitService->convertSecondsToMinutesOrHoursV2($weekBefore);
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+        $thisWeekValues = $handler->formatValue($thisWeek);
+        $weekBeforeValues = $handler->formatValue($weekBefore);
 
-        $percentages = $this->calculatePercentageDifferenceBetweenTwoNumbers($thisWeek, $weekBefore);
+        $percentages = $handler->calculatePercentageDifference($thisWeek, $weekBefore);
 
         // The difference between the two numbers in minutes
-        $minuteDifference = round(abs($weekBefore - $thisWeek) / 60);
-
+        $difference = $handler->formatDifference($weekBefore, $thisWeek);
+        $differenceQualifier = $weekBefore < $thisWeek ? "more" : "fewer";
+        $unit = $handler->getUnitLabelFull();
 
         return [
-            'description' => 'Last week, you did ' . $minuteDifference . ' ' . ($weekBefore < $thisWeek ? "more" : "fewer") . ' minutes in total than the week before',
+            'description' => "Last week, you did {$difference} {$differenceQualifier} {$unit} in total than the week before",
             'barOne' => [
                 "number" => $thisWeekValues['value'],
                 "unit" => $thisWeekValues['unit_full'],
@@ -420,17 +436,19 @@ class HabitInsightService
         $thisMonth = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisMonth, $endOfRangeThisMonth, $startOfRangeThisMonth->diffInDays($endOfRangeThisMonth));
         $lastMonth = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastMonth, $endOfRangeLastMonth, $startOfRangeLastMonth->diffInDays($endOfRangeLastMonth));
 
-        // Convert values to hours/minutes
-        $thisMonthValues = $habitService->convertSecondsToMinutesOrHoursV2($thisMonth);
-        $lastMonthValues = $habitService->convertSecondsToMinutesOrHoursV2($lastMonth);
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+        $thisMonthValues = $handler->formatValue($thisMonth);
+        $lastMonthValues = $handler->formatValue($lastMonth);
 
         // calculate percentages
-        $percentages = $this->calculatePercentageDifferenceBetweenTwoNumbers($thisMonth, $lastMonth);
+        $percentages = $handler->calculatePercentageDifference($thisMonth, $lastMonth);
+        $difference = $handler->formatDifference($lastMonth, $thisMonth);
+        $differenceQualifier = $lastMonth < $thisMonth ? "more" : "fewer";
+        $unit = $handler->getUnitLabelFull();
 
-        $minuteDifference = round(abs($lastMonth - $thisMonth) / 60);
-
+        //TODO: bar_text still needs to be updated using the factory
         return [
-            'description' => 'Last month, you averaged ' . $minuteDifference . ' ' . ($lastMonth < $thisMonth ? "more" : "fewer") . ' minutes than the month before.',
+            'description' => "Last month, you averaged {$difference} {$differenceQualifier} {$unit} than the month before.",
             'barOne' => [
                 "number" => $thisMonthValues['value'],
                 "unit" => $thisMonthValues['unit_full'] . ' / day',
@@ -463,18 +481,20 @@ class HabitInsightService
         $thisWeek = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisMonth, $endOfRangeThisMonth);
         $weekBefore = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastMonth, $endOfRangeLastMonth);
 
-        // Convert values to hours/minutes
-        $thisWeekValues = $habitService->convertSecondsToMinutesOrHoursV2($thisWeek);
-        $weekBeforeValues = $habitService->convertSecondsToMinutesOrHoursV2($weekBefore);
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+        $thisWeekValues = $handler->formatValue($thisWeek);
+        $weekBeforeValues = $handler->formatValue($weekBefore);
 
-        $percentages = $this->calculatePercentageDifferenceBetweenTwoNumbers($thisWeek, $weekBefore);
+        $percentages = $handler->calculatePercentageDifference($thisWeek, $weekBefore);
 
         // The difference between the two numbers in minutes
-        $minuteDifference = round(abs($weekBefore - $thisWeek) / 60);
+        $difference = $handler->formatDifference($weekBefore, $thisWeek);
+        $differenceQualifer = $weekBefore < $thisWeek ? "more" : "fewer";
+        $unit = $handler->getUnitLabelFull();
 
 
         return [
-            'description' => 'Last month, you did ' . $minuteDifference . ' ' . ($weekBefore < $thisWeek ? "more" : "fewer") . ' minutes in total than the week before.',
+            'description' => "Last month, you did {$difference} {$differenceQualifer} {$unit} in total than the week before.",
             'barOne' => [
                 "number" => $thisWeekValues['value'],
                 "unit" => $thisWeekValues['unit_full'],
@@ -507,15 +527,17 @@ class HabitInsightService
         $thisYear = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisYear, $endOfRangeThisYear);
         $lastYear = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastYear, $endOfRangeLastYear);
 
-        // Convert values to hours/minutes
-        $thisYearValues = $habitService->convertSecondsToMinutesOrHoursV2($thisYear);
-        $lastYearValues = $habitService->convertSecondsToMinutesOrHoursV2($lastYear);
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+        $thisYearValues = $handler->formatValue($thisYear);
+        $lastYearValues = $handler->formatValue($lastYear);
 
-        // calculate percentages
-        $percentages = $this->calculatePercentageDifferenceBetweenTwoNumbers($thisYear, $lastYear);
+        $percentages = $handler->calculatePercentageDifference($thisYear, $lastYear);
+        $difference = $handler->formatDifference($lastYear, $thisYear);
+        $differenceQualifer = $lastYear < $thisYear ? "more" : "fewer";
+        $unit = $handler->getUnitLabelFull();
 
         return [
-            'description' => 'This year, you did ' . round(abs($lastYear - $thisYear) / 60) . ' ' . ($lastYear < $thisYear ? "more" : "fewer") . ' minutes in total than the year before',
+            'description' => "This year, you did {$difference} {$differenceQualifer} {$unit} in total than the year before",
             'barOne' => [
                 "number" => $thisYearValues['value'],
                 "unit" => $thisYearValues['unit_full'],
