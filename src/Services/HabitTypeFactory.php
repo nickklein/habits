@@ -3,16 +3,14 @@
 namespace NickKlein\Habits\Services;
 
 use NickKlein\Habits\Interfaces\HabitTypeInterface;
-use NickKlein\Habits\Services\HabitService;
 use NickKlein\Habits\Services\TimeHabitHandler;
 
 class HabitTypeFactory
 {
-    private $habitService;
     
-    public function __construct(HabitService $habitService)
+    public function __construct()
     {
-        $this->habitService = $habitService;
+        //
     }
     
     /**
@@ -26,7 +24,7 @@ class HabitTypeFactory
     {
         switch ($habitType) {
             case 'time':
-                return new TimeHabitHandler($this->habitService);
+                return new TimeHabitHandler();
             case 'unit':
                 /*return new UnitHabitHandler();*/
             case 'ml':

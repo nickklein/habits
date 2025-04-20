@@ -7,23 +7,17 @@ use NickKlein\Habits\Events\HabitEndedEvent;
 use NickKlein\Habits\Interfaces\HabitTypeInterface;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
-use NickKlein\Habits\Services\HabitService;
 
 class TimeHabitHandler implements HabitTypeInterface
 {
-    /**
-     * @var HabitService
-     */
-    private $habitService;
     
     /**
      * Constructor
      *
-     * @param HabitService $habitService
      */
-    public function __construct(HabitService $habitService)
+    public function __construct()
     {
-        $this->habitService = $habitService;
+        //
     }
     
     /**
@@ -34,9 +28,24 @@ class TimeHabitHandler implements HabitTypeInterface
      */
     public function formatValue(int $value): array
     {
-        return $this->habitService->convertSecondsToMinutesOrHoursV2($value);
+        $minutes = $value / 60;
+        $hours = $minutes / 60;
+
+        if ($hours >= 1) {
+            return [
+                'value' => number_format($hours, 1),
+                'unit' => 'hrs',
+                'unit_full' => 'hours',
+            ];
+        }
+
+        return [
+            'value' => number_format($minutes, 1),
+            'unit' => 'min',
+            'unit_full' => 'minutes',
+        ];
     }
-    
+
     /**
      * Format a goal value for display
      *
@@ -46,7 +55,7 @@ class TimeHabitHandler implements HabitTypeInterface
     public function formatGoal(HabitUser $habitUser): array
     {
         if (isset($habitUser->streak_goal)) {
-            $convertedGoalTime = $this->habitService->convertSecondsToMinutesOrHoursV2($habitUser->streak_goal);
+            $convertedGoalTime = $this->formatValue($habitUser->streak_goal);
             return [
                 'total' => $convertedGoalTime['value'],
                 'unit' => $convertedGoalTime['unit'],

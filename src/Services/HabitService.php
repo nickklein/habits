@@ -15,7 +15,7 @@ class HabitService
     // Create pagination constant
     const PAGINATE_LIMIT = 100;
 
-    public function __construct()
+    public function __construct(private HabitTypeFactory $habitTypeFactory)
     {
         //
     }
@@ -23,13 +23,18 @@ class HabitService
     public function getTransactions(int $userId, string $timezone = 'UTC'): LengthAwarePaginator
     {
 
-        $habitTimes = HabitTime::select('habit_times.id', 'habits.name', 'start_time', 'end_time', 'duration')
+        $habitTimes = HabitTime::select('habit_times.id', 'habits.name', 'start_time', 'end_time', 'duration', 'habit_type')
             ->join('habits', 'habit_times.habit_id', '=', 'habits.habit_id')
+            ->join('habit_user', 'habit_user.user_id', '=', 'habit_times.user_id')
             ->where('habit_times.user_id', $userId)
             ->orderBy('id', 'desc')
             ->paginate(self::PAGINATE_LIMIT);
 
         $habitTimes->getCollection()->transform(function ($habitTime) use ($timezone) {
+            $handler = $this->habitTypeFactory->getHandler($habitTime->habit_type);
+            
+            $formattedValue = $handler->formatValue($habitTime->duration);
+            
             return [
                 'id' => $habitTime->id,
                 'name' => $habitTime->name,
@@ -39,7 +44,7 @@ class HabitService
                 'end_time' => $habitTime->end_time 
                     ? Carbon::parse($habitTime->end_time)->setTimezone($timezone)->format('M j, Y, H:i:s') 
                     : null,
-                'duration' => $this->convertSecondsToMinutesOrHours($habitTime->duration)
+                'duration' => $formattedValue['value'] . ' '. $formattedValue['unit'],
             ];
         });
 
@@ -171,32 +176,6 @@ class HabitService
         }
 
         return number_format($minutes, 1) . 'm';
-    }
-
-    /**
-     * Convert seconds into minutes or hours
-     *
-     * @param integer $seconds
-     * @return array
-     */
-    public function convertSecondsToMinutesOrHoursV2(int $seconds): array
-    {
-        $minutes = $seconds / 60;
-        $hours = $minutes / 60;
-
-        if ($hours >= 1) {
-            return [
-                'value' => number_format($hours, 1),
-                'unit' => 'hrs',
-                'unit_full' => 'hours',
-            ];
-        }
-
-        return [
-            'value' => number_format($minutes, 1),
-            'unit' => 'min',
-            'unit_full' => 'minutes',
-        ];
     }
 
     /**

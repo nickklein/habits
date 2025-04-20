@@ -156,6 +156,7 @@ class HabitInsightService
         $endOfWeek = Carbon::today($timezone)->endOfWeek()->setTimezone('UTC');
 
         foreach($habitUser as $item) {
+            // TODO: Convert this to use HabitTypeFactory
             $habitIdsArray = $this->fetchHabitIdsBasedOnHierarchy($item);
 
             if ($item->streak_time_type === 'daily') {
@@ -224,6 +225,8 @@ class HabitInsightService
             $weekBefore = $insightsRepository->getAveragesByHabitId($userId, [$habit->habit_id], $startOfRangeLastWeek, $endOfRangeLastWeek, 7);
 
             $name = $habit->name;
+
+            // TODO: Convert this use factory
             $thisWeekAvg = $habitService->convertSecondsToMinutesOrHours($thisWeek);
             $percentageDifference = $habitService->percentageDifference($weekBefore, $thisWeek);
 
@@ -551,27 +554,6 @@ class HabitInsightService
                 "width" => $percentages[1],
             ],
         ];
-    }
-
-    /**
-     * Calculate percentage difference between two numbers
-     *
-     * @param integer $value1
-     * @param integer $value2
-     * @return array
-     */
-    private function calculatePercentageDifferenceBetweenTwoNumbers(int $value1, int $value2): array
-    {
-        $maxValue = max($value1, $value2);
-
-        if ($maxValue == 0) {
-            return [0, 0];
-        }
-
-        $percentage1 = ($value1 / $maxValue) * 100;
-        $percentage2 = ($value2 / $maxValue) * 100;
-
-        return [$percentage1, $percentage2];
     }
 
     /**
