@@ -2,12 +2,11 @@
 
 namespace NickKlein\Habits\Services;
 
-use NickKlein\Habits\Models\Habit;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection as SupportCollection;
 
 class HabitService
 {
@@ -122,13 +121,27 @@ class HabitService
      * Get habits
      *
      * @TODO: Move to Repository
-     * @return void
+     * @param int $userId
+     * @param bool $timeOnly
+     * @return SupportCollection
      */
-    public function getHabits()
+    public function getUserHabits(int $userId, bool $timeOnly = false): SupportCollection
     {
-        return Habit::select(DB::raw('habit_id AS value'), DB::raw('name AS label'))
-            ->orderBy('name')
-            ->get();
+        $habitUsers = HabitUser::with(['habit'])
+                ->when($timeOnly, function($query) {
+                    return $query->where('habit_type', 'time');
+                })
+                ->where('user_id', $userId)->get();
+
+        $habits = $habitUsers->map(function ($habitUser) {
+            return [
+                'value' => $habitUser->habit->habit_id,
+                'label' => $habitUser->habit->name,
+                'habit_type' => $habitUser->habit_type,
+            ];
+        });
+
+        return $habits->sortBy('label')->values();
     }
 
     /**
@@ -151,6 +164,7 @@ class HabitService
             'start_time' => Carbon::parse($habitTime->start_time)->setTimezone($timezone)->format('H:i:s'),
             'end_date' => $habitTime->end_time ? Carbon::parse($habitTime->end_time)->setTimezone($timezone)->format('Y-m-d') : null,
             'end_time' => $habitTime->end_time ? Carbon::parse($habitTime->end_time)->setTimezone($timezone)->format('H:i:s') : null,
+            'duration' => $habitTime->duration ?? 0, 
         ];
     }
 

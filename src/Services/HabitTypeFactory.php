@@ -25,8 +25,8 @@ class HabitTypeFactory
         switch ($habitType) {
             case 'time':
                 return new TimeHabitHandler();
-            /*case 'unit':*/
-                /*return new UnitHabitHandler();*/
+            case 'unit':
+                return new UnitHabitHandler();
             /*case 'ml':*/
                 /*return new MlHabitHandler();*/
             default:

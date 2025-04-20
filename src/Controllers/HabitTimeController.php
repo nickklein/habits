@@ -40,7 +40,7 @@ class HabitTimeController extends Controller
         $later = $now->copy()->addMinutes(15);
 
         return Inertia::render('Habits/Add', [
-            'habits' => $this->habitService->getHabits(),
+            'habits' => $this->habitService->getUserHabits(Auth::user()->id),
             'times' => [
                 'start_date' => $now->format('Y-m-d'),
                 'start_time' => $now->format('H:i:s'),
@@ -104,7 +104,7 @@ class HabitTimeController extends Controller
     {
         return Inertia::render('Habits/Edit', [
             'item' => $this->habitService->getHabitTime(Auth::user()->id, Auth::user()->timezone, $habitTimesId),
-            'habits' => $this->habitService->getHabits(),
+            'habits' => $this->habitService->getUserHabits(Auth::user()->id),
             'tags' => $tagsRepository->listHabitTimesTags($habitTimesId, Auth::user()->id),
             'tagsAddUrl' => route('habits.transactions.edit.add-tag', ['habitTimesId' => $habitTimesId]),
             'tagsRemoveUrl' => route('habits.transactions.edit.remove-tag', ['habitTimesId' => $habitTimesId]),
@@ -139,7 +139,7 @@ class HabitTimeController extends Controller
     public function timerCreate()
     {
         return Inertia::render('Habits/AddTimer', [
-            'habits' => $this->habitService->getHabits(),
+            'habits' => $this->habitService->getUserHabits(Auth::user()->id, 1),
         ]);
     }
 
