@@ -25,9 +25,9 @@ class HabitTypeFactory
         switch ($habitType) {
             case 'time':
                 return new TimeHabitHandler();
-            case 'unit':
+            /*case 'unit':*/
                 /*return new UnitHabitHandler();*/
-            case 'ml':
+            /*case 'ml':*/
                 /*return new MlHabitHandler();*/
             default:
                 throw new \InvalidArgumentException("Unsupported habit type: {$habitType}");

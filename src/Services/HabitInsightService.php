@@ -9,7 +9,6 @@ use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
-use NickKlein\Habits\Events\HabitEndedEvent;
 use NickKlein\Habits\Services\HabitTypeFactory;
 
 class HabitInsightService
@@ -234,47 +233,6 @@ class HabitInsightService
         }
 
         return $notification;
-    }
-
-    /**
-     * Manage Habit Time by turning it on/off
-     *
-     * @param integer $habitId
-     * @param integer $userId
-     * @param string $timezone
-     * @return boolean
-     *
-     * @todo dependency injection for HabitInsightRepository
-     */
-    public function manageHabitTime(int $habitId, int $userId, string $timezone = 'UTC', string $status): bool
-    {
-        if ($status === 'on') {
-            $habitTime = new HabitTime;
-            $habitTime->habit_id = $habitId;
-            $habitTime->user_id = $userId;
-            // Convert current user-local time to UTC
-            $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
-            $habitTime->end_time = null;
-
-            return $habitTime->save();
-        }
-
-        $habitTime = HabitTime::where('habit_id', $habitId)
-            ->where('user_id', $userId)
-            ->whereNotNull('start_time')
-            ->whereNull('end_time')
-            ->first();
-
-        if (!$habitTime) {
-            return false;
-        }
-
-        $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
-        $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
-
-        event(new HabitEndedEvent($userId, $timezone, $habitTime));
-
-        return $habitTime->save();
     }
 
     /**
@@ -745,44 +703,5 @@ class HabitInsightService
         }
 
         return $totals->sum('total_duration');
-    }
-
-    /**
-     * Convert time to summary page format
-     *
-     * @param HabitService $service
-     * @param integer $time
-     * @return array
-     */
-    private function convertTimeToSummaryPageFormat(HabitService $service, int $time): array
-    {
-        $convertedTime = $service->convertSecondsToMinutesOrHoursV2($time);
-
-        return [
-            'total' => $convertedTime['value'],
-            'unit' => $convertedTime['unit'],
-        ];
-    }
-
-    /**
-     * Convert goal timet o summary page format
-     *
-     * @param HabitService $service
-     * @param HabitUser $habit
-     * @return array
-     */
-    private function convertGoalTimeToSummaryPageFormat(HabitService $service, HabitUser $habit): array
-    {
-        // Check if it's a goal type habit, some aren't.
-        if (isset($habit->streak_goal)) {
-            $convertedGoalTime = $service->convertSecondsToMinutesOrHoursV2($habit->streak_goal);
-            return [
-                'total' => $convertedGoalTime['value'],
-                'unit' => $convertedGoalTime['unit'],
-                'type' => $habit->streak_time_type,
-            ];
-        }
-
-        return ['total' => null, 'unit' => null, 'type' => $habit->streak_time_type];
     }
 }

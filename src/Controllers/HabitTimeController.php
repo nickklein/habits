@@ -8,7 +8,6 @@ use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
 use App\Services\LogsService;
-use App\Services\PushoverService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -22,22 +21,26 @@ use NickKlein\Tags\Requests\TagRequest;
 
 class HabitTimeController extends Controller
 {
-    public function transactions(HabitService $service, HabitInsightRepository $insightRepository)
+    public function __construct(private HabitService $habitService, private HabitInsightRepository $habitInsightRepository)
+    {
+        //
+    }
+    public function transactions()
     {
         return Inertia::render('Habits/Transactions', [
-            'lists' => $service->getTransactions(Auth::user()->id, Auth::user()->timezone),
-            'anyHabitActive' => $insightRepository->anyHabitActive(Auth::user()->id),
+            'lists' => $this->habitService->getTransactions(Auth::user()->id, Auth::user()->timezone),
+            'anyHabitActive' => $this->habitInsightRepository->anyHabitActive(Auth::user()->id),
         ]);
     }
 
-    public function create(HabitService $habitService)
+    public function create()
     {
         $timezone = Auth::user()?->timezone ?? config('app.timezone');
         $now = Carbon::now($timezone);
         $later = $now->copy()->addMinutes(15);
 
         return Inertia::render('Habits/Add', [
-            'habits' => $habitService->getHabits(),
+            'habits' => $this->habitService->getHabits(),
             'times' => [
                 'start_date' => $now->format('Y-m-d'),
                 'start_time' => $now->format('H:i:s'),
@@ -51,13 +54,13 @@ class HabitTimeController extends Controller
      *
      * @param integer $userId
      * @param integer $habitId
-     * @param HabitService $habitService
      * @return void
      */
-    public function storeHabitTimes(HabitTimeRequests $request, HabitService $habitService)
+    public function storeHabitTransaction(HabitTimeRequests $request)
     {
         $fields = $request->validated();
-        $response = $habitService->storeHabitTime(Auth::user()->id, Auth::user()->timezone, $fields['habit_id'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
+        $fields['value'] = $fields['value'] ?? 0;
+        $response = $this->habitService->storeHabitTransaction(Auth::user()->id, Auth::user()->timezone, $fields['habit_id'], $fields['value'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
         if ($response) {
             return back()->with([
                 'message' => 'Habit time added successfully',
@@ -76,9 +79,9 @@ class HabitTimeController extends Controller
      * @param HabitService $service
      * @return JSONResponse
      */
-    public function destroy(int $habitTimeId, HabitService $service)
+    public function destroy(int $habitTimeId)
     {
-        $response = $service->deleteHabitTime($habitTimeId, Auth::user()->id);
+        $response = $this->habitService->deleteHabitTime($habitTimeId, Auth::user()->id);
         if ($response) {
             return response()->json([
                 'message' => 'Habit deleted successfully',
@@ -97,11 +100,11 @@ class HabitTimeController extends Controller
      * @param HabitService $service
      * @return Inertia
      */
-    public function editHabitTimes(int $habitTimesId, HabitService $service, TagsRepository $tagsRepository)
+    public function editHabitTransaction(int $habitTimesId, TagsRepository $tagsRepository)
     {
         return Inertia::render('Habits/Edit', [
-            'item' => $service->getHabitTime(Auth::user()->id, Auth::user()->timezone, $habitTimesId),
-            'habits' => $service->getHabits(),
+            'item' => $this->habitService->getHabitTime(Auth::user()->id, Auth::user()->timezone, $habitTimesId),
+            'habits' => $this->habitService->getHabits(),
             'tags' => $tagsRepository->listHabitTimesTags($habitTimesId, Auth::user()->id),
             'tagsAddUrl' => route('habits.transactions.edit.add-tag', ['habitTimesId' => $habitTimesId]),
             'tagsRemoveUrl' => route('habits.transactions.edit.remove-tag', ['habitTimesId' => $habitTimesId]),
@@ -115,10 +118,11 @@ class HabitTimeController extends Controller
      * @param HabitTimeRequests $request
      * @param HabitService $service
      */
-    public function updateHabitTimes(int $habitTimeId, HabitTimeRequests $request, HabitService $service)
+    public function updateHabitTransaction(int $habitTimeId, HabitTimeRequests $request)
     {
         $fields = $request->validated();
-        $response = $service->updateHabitTime($habitTimeId, Auth::user()->id, Auth::user()->timezone, $fields['habit_id'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
+        $fields['value'] = $fields['value'] ?? 0;
+        $response = $this->habitService->updateHabitTransaction($habitTimeId, Auth::user()->id, Auth::user()->timezone, $fields['habit_id'], $fields['value'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
         if ($response) {
             return back()->with(['message' => __('Habit updated successfully')], 200);
         }
@@ -132,10 +136,10 @@ class HabitTimeController extends Controller
      * @param HabitService $habitService
      * @return Inertia
      */
-    public function timerCreate(HabitService $habitService)
+    public function timerCreate()
     {
         return Inertia::render('Habits/AddTimer', [
-            'habits' => $habitService->getHabits(),
+            'habits' => $this->habitService->getHabits(),
         ]);
     }
 
@@ -143,13 +147,11 @@ class HabitTimeController extends Controller
      * Create Habit Timer Store Function
      *
      * @param HabitTimerRequests $request
-     * @param HabitInsightService $insightService
-     * @param HabitInsightRepository $insightRepository
      */
-    public function timerStore(HabitTimerRequests $request, HabitInsightService $insightService)
+    public function timerStore(HabitTimerRequests $request)
     {
         $fields = $request->validated();
-        $response = $insightService->manageHabitTime($fields['habit_id'], Auth::user()->id, Auth::user()->timezone, 'on');
+        $response = $this->habitService->manageHabitTransaction($fields['habit_id'], Auth::user()->id, Auth::user()->timezone, 'on');
         if ($response) {
             return redirect()->route('habits.transactions')->with([
                 'message' => 'Habit time added successfully',

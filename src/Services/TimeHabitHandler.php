@@ -3,7 +3,6 @@
 namespace NickKlein\Habits\Services;
 
 use Carbon\Carbon;
-use NickKlein\Habits\Events\HabitEndedEvent;
 use NickKlein\Habits\Interfaces\HabitTypeInterface;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
@@ -98,7 +97,7 @@ class TimeHabitHandler implements HabitTypeInterface
         // Convert to minutes for display
         $minuteDifference = abs($value1 - $value2) / 60;
 
-        return round($minuteDifference) . ' ' . $this->getUnitLabelFull();
+        return round($minuteDifference);
     }
     
     /**
@@ -182,7 +181,49 @@ class TimeHabitHandler implements HabitTypeInterface
         $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
         $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
 
-        event(new HabitEndedEvent($userId, $timezone, $habitTime));
+        return $habitTime->save();
+    }
+
+    public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    {
+        $habitTime = HabitTime::where('id', $habitTimeId)
+            ->where('user_id', $userId)
+            ->first();
+
+        // If record isn't found, return false
+        if (!$habitTime) {
+            return false;
+        }
+
+        $startDateTime = Carbon::parse("{$startDate} {$startTime}", $timezone)->timezone('UTC');
+        $endDateTime = Carbon::parse("{$endDate} {$endTime}", $timezone)->timezone('UTC');
+
+        $habitTime->habit_id = $habitId;
+        $habitTime->start_time = $startDateTime;
+        $habitTime->end_time = $endDateTime;
+        $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
+
+        return $habitTime->save();
+    }
+
+    /**
+     * Stores a new row in the habit_time(habit_transaction) table
+     *
+     **/
+    public function storeValue(int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    {
+        $startDateTime = $startDate . ' ' . $startTime;
+        $endDateTime = $endDate . ' ' . $endTime;
+
+        $start = Carbon::createFromFormat('Y-m-d H:i:s', $startDateTime, $timezone)->setTimezone('UTC');
+        $end = Carbon::createFromFormat('Y-m-d H:i:s', $endDateTime, $timezone)->setTimezone('UTC');
+
+        $habitTime = new HabitTime;
+        $habitTime->habit_id = $habitId;
+        $habitTime->user_id = $userId;
+        $habitTime->start_time = $start;
+        $habitTime->end_time = $end;
+        $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
 
         return $habitTime->save();
     }

@@ -7,7 +7,6 @@ use NickKlein\Habits\Models\HabitUser;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
-use NickKlein\Habits\Events\HabitEndedEvent;
 
 class HabitInsightRepository
 {
@@ -192,7 +191,6 @@ class HabitInsightRepository
         foreach ($activeHabits as $habitTime) {
             $habitTime->end_time = Carbon::now('UTC');
             $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
-            event(new HabitEndedEvent($userId, $timezone, $habitTime));
             $habitTime->save();
         }
     }

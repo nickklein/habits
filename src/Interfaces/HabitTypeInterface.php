@@ -14,5 +14,7 @@ interface HabitTypeInterface
     public function formatStreakGoal(int $goalValue): string;
     public function calculatePercentageDifference(int $value1, int $value2): array;
     public function meetsGoal(int $value, int $goalValue): bool;
-    public function recordValue(int $habitId, int $userId, int $value, string $timezone = 'UTC'): bool;
+    public function recordValue(int $habitId, int $userId, int $value = 0, string $timezone = 'UTC'): bool;
+    public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool;
+    public function storeValue(int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool;
 }

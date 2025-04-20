@@ -4,6 +4,7 @@ namespace NickKlein\Habits\Tests;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use NickKlein\Habits\HabitsServiceProvider;
@@ -26,7 +27,16 @@ class TestCase extends Orchestra
         parent::setUp();
 
         $this->runMigrations();
+        $this->truncateTables();
         $this->seedData();
+    }
+    
+    protected function truncateTables()
+    {
+        DB::table('habit_times')->truncate();
+        DB::table('habit_user')->truncate();
+        DB::table('habits')->truncate();
+        DB::table('habit_times_tags')->truncate();
     }
 
     public function runMigrations()
@@ -86,6 +96,7 @@ class TestCase extends Orchestra
 
     public function tearDown(): void
     {
+        $this->truncateTables();
         parent::tearDown();
     }
 }

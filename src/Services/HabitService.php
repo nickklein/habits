@@ -8,7 +8,6 @@ use NickKlein\Habits\Models\HabitUser;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use NickKlein\Habits\Events\HabitEndedEvent;
 
 class HabitService
 {
@@ -25,7 +24,10 @@ class HabitService
 
         $habitTimes = HabitTime::select('habit_times.id', 'habits.name', 'start_time', 'end_time', 'duration', 'habit_type')
             ->join('habits', 'habit_times.habit_id', '=', 'habits.habit_id')
-            ->join('habit_user', 'habit_user.user_id', '=', 'habit_times.user_id')
+            ->join('habit_user', function ($join) {
+                $join->on('habit_user.user_id', '=', 'habit_times.user_id')
+                    ->on('habit_user.habit_id', '=', 'habit_times.habit_id');
+            })
             ->where('habit_times.user_id', $userId)
             ->orderBy('id', 'desc')
             ->paginate(self::PAGINATE_LIMIT);
@@ -67,46 +69,39 @@ class HabitService
         return $habitTime->delete();
     }
 
-    public function updateHabitTime(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    /**
+     * Manage Habit Time by turning it on/off
+     *
+     * @param integer $habitId
+     * @param integer $userId
+     * @param string $timezone
+     * @return boolean
+     *
+     */
+    public function manageHabitTransaction(int $habitId, int $userId, string $timezone = 'UTC', string $status): bool
     {
-        $habitTime = HabitTime::where('id', $habitTimeId)
-            ->where('user_id', $userId)
-            ->first();
+        $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        // If record isn't found, return false
-        if (!$habitTime) {
-            return false;
-        }
-
-        $startDateTime = Carbon::parse("{$startDate} {$startTime}", $timezone)->timezone('UTC');
-        $endDateTime = Carbon::parse("{$endDate} {$endTime}", $timezone)->timezone('UTC');
-
-        $habitTime->habit_id = $habitId;
-        $habitTime->start_time = $startDateTime;
-        $habitTime->end_time = $endDateTime;
-        $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
-        event(new HabitEndedEvent($userId, $timezone, $habitTime));
-
-        return $habitTime->save();
+        return $handler->recordValue($habitId, $userId, 0, $timezone, $status);
     }
 
-    public function storeHabitTime(int $userId, string $timezone = 'UTC', int $habitId, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    public function updateHabitTransaction(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
     {
-        $startDateTime = $startDate . ' ' . $startTime;
-        $endDateTime = $endDate . ' ' . $endTime;
+        // Need to figure out what the type for this habit is for the user
+        $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        $start = Carbon::createFromFormat('Y-m-d H:i:s', $startDateTime, $timezone)->setTimezone('UTC');
-        $end = Carbon::createFromFormat('Y-m-d H:i:s', $endDateTime, $timezone)->setTimezone('UTC');
+        return $handler->updateValue($habitTimeId, $userId, $timezone, $habitId, $value, $startDate, $startTime, $endDate, $endTime);
+    }
 
-        $habitTime = new HabitTime;
-        $habitTime->habit_id = $habitId;
-        $habitTime->user_id = $userId;
-        $habitTime->start_time = $start;
-        $habitTime->end_time = $end;
-        $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
-        event(new HabitEndedEvent($userId, $timezone, $habitTime));
+    public function storeHabitTransaction(int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    {
+        // Need to figure out what the type for this habit is for the user
+        $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        return $habitTime->save();
+        return $handler->storeValue($userId, $timezone, $habitId, $value, $startDate, $startTime, $endDate, $endTime);
     }
 
     /**
