@@ -214,4 +214,10 @@ class HabitService
 
         return floor((($newValue - $oldValue) / $oldValue) * 100);
     }
+
+    public function fetchNewHabitTransactions(int $lastTransactionId, HabitService $habitService)
+    {
+        return HabitTime::where('id', $lastTransactionId)
+            ->get();
+    }
 }
