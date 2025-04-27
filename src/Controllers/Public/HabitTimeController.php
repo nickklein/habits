@@ -3,11 +3,13 @@
 namespace NickKlein\Habits\Controllers\Public;
 
 use App\Models\User;
+use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Routing\Controller;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Request;
 
 class HabitTimeController extends Controller
 {
@@ -116,9 +118,18 @@ class HabitTimeController extends Controller
         ], Response::HTTP_OK);
     }
 
-    public function fetchNewHabitTransactions(int $lastTransactionId, HabitInsightRepository  $habitInsightRepository)
+    public function fetchNewHabitTransactions(HttpRequest $request, HabitInsightRepository  $habitInsightRepository)
     {
-        $items = $habitInsightRepository->fetchNewHabitTransactions($lastTransactionId);
+        // TODO: Use request form
+        $lastUpdatedAt = $request->input('last_updated_at');
+        if (!$lastUpdatedAt) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'last_updated_at is required',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $items = $habitInsightRepository->fetchNewHabitTransactions($lastUpdatedAt);
 
         return response()->json([
             'status' => 'success',
