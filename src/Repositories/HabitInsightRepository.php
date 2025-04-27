@@ -221,11 +221,8 @@ class HabitInsightRepository
     public function fetchNewHabitTransactions(int $lastTransactionId)
     {
         return HabitTime::where('id', '>', $lastTransactionId)
-<<<<<<< HEAD
             ->whereNotNull('start_time')
             ->whereNotNull('end_time')
-=======
->>>>>>> 18fe7deeb6362d74289fc739800dcb0043b09fed
             ->get();
     }
 }
