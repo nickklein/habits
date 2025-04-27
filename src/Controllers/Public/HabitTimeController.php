@@ -115,4 +115,14 @@ class HabitTimeController extends Controller
             'is_active' => $activeState,
         ], Response::HTTP_OK);
     }
+
+    public function fetchNewHabitTransactions(int $lastTransactionId, HabitInsightRepository  $habitInsightRepository)
+    {
+        $items = $habitInsightRepository->fetchNewHabitTransactions($lastTransactionId);
+
+        return response()->json([
+            'status' => 'success',
+            'habit_transactions' => $items,
+        ], Response::HTTP_OK);
+    }
 }

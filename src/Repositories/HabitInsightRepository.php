@@ -213,4 +213,14 @@ class HabitInsightRepository
         
         return 'UTC';
     }
+
+    /**
+     * Grab latest transactions
+     *
+     **/
+    public function fetchNewHabitTransactions(int $lastTransactionId)
+    {
+        return HabitTime::where('id', $lastTransactionId)
+            ->get();
+    }
 }
