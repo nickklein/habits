@@ -220,7 +220,7 @@ class HabitInsightRepository
      **/
     public function fetchNewHabitTransactions(int $lastTransactionId)
     {
-        return HabitTime::where('id', $lastTransactionId)
+        return HabitTime::where('id', '>', $lastTransactionId)
             ->get();
     }
 }
