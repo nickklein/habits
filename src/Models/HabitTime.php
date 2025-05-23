@@ -9,7 +9,6 @@ use NickKlein\Tags\Models\Tags;
 class HabitTime extends Model
 {
     use HasFactory;
-    public $timestamps = false;
 
     //@todo remove ids from fillables
     protected $fillable = [
