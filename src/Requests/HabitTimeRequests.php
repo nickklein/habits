@@ -29,7 +29,7 @@ class HabitTimeRequests extends FormRequest
             'start_time' => 'required',
             'end_date' => 'required|date_format:Y-m-d',
             'end_time' => 'required',
-            'value' => 'integer',
+            'duration' => 'integer',
         ];
     }
 }

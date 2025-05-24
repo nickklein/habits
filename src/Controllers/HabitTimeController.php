@@ -121,8 +121,8 @@ class HabitTimeController extends Controller
     public function updateHabitTransaction(int $habitTimeId, HabitTimeRequests $request)
     {
         $fields = $request->validated();
-        $fields['value'] = $fields['value'] ?? 0;
-        $response = $this->habitService->updateHabitTransaction($habitTimeId, Auth::user()->id, Auth::user()->timezone, $fields['habit_id'], $fields['value'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
+        $fields['duration'] = $fields['duration'] ?? 0;
+        $response = $this->habitService->updateHabitTransaction($habitTimeId, Auth::user()->id, Auth::user()->timezone, $fields['habit_id'], $fields['duration'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
         if ($response) {
             return back()->with(['message' => __('Habit updated successfully')], 200);
         }

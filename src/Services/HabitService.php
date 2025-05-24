@@ -21,13 +21,13 @@ class HabitService
     public function getTransactions(int $userId, string $timezone = 'UTC'): LengthAwarePaginator
     {
 
-        $habitTimes = HabitTime::select('habit_times.id', 'habits.name', 'start_time', 'end_time', 'duration', 'habit_type')
-            ->join('habits', 'habit_times.habit_id', '=', 'habits.habit_id')
+        $habitTimes = HabitTime::select('habit_transactions.id', 'habits.name', 'start_time', 'end_time', 'duration', 'habit_type')
+            ->join('habits', 'habit_transactions.habit_id', '=', 'habits.habit_id')
             ->join('habit_user', function ($join) {
-                $join->on('habit_user.user_id', '=', 'habit_times.user_id')
-                    ->on('habit_user.habit_id', '=', 'habit_times.habit_id');
+                $join->on('habit_user.user_id', '=', 'habit_transactions.user_id')
+                    ->on('habit_user.habit_id', '=', 'habit_transactions.habit_id');
             })
-            ->where('habit_times.user_id', $userId)
+            ->where('habit_transactions.user_id', $userId)
             ->orderBy('id', 'desc')
             ->paginate(self::PAGINATE_LIMIT);
 
@@ -153,7 +153,7 @@ class HabitService
     public function getHabitTime(int $userId, string $timezone = 'UTC',  int $habitTimesId): array
     {
         $habitTime = HabitTime::where('id', $habitTimesId)
-            ->select('id', 'habit_id', 'start_time', 'end_time')
+            ->select('id', 'habit_id', 'start_time', 'end_time', 'duration')
             ->where('user_id', $userId)
             ->first();
 

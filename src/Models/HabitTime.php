@@ -10,6 +10,8 @@ class HabitTime extends Model
 {
     use HasFactory;
 
+    protected $table = 'habit_transactions';
+
     //@todo remove ids from fillables
     protected $fillable = [
         'user_id',
