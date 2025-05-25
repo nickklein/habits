@@ -16,5 +16,6 @@ interface HabitTypeInterface
     public function meetsGoal(int $value, int $goalValue): bool;
     public function recordValue(int $habitId, int $userId, int $value = 0, string $timezone = 'UTC'): bool;
     public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool;
-    public function storeValue(int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool;
+    //@param $fields (int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime)
+    public function storeValue(int $userId, string $timezone = 'UTC', int $habitId, array $fields): bool;
 }

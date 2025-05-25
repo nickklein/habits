@@ -209,11 +209,12 @@ class TimeHabitHandler implements HabitTypeInterface
     /**
      * Stores a new row in the habit_time(habit_transaction) table
      *
+     * @param $fields (int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime)
      **/
-    public function storeValue(int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    public function storeValue(int $userId, string $timezone = 'UTC', int $habitId, array $fields): bool
     {
-        $startDateTime = $startDate . ' ' . $startTime;
-        $endDateTime = $endDate . ' ' . $endTime;
+        $startDateTime = $fields['start_date'] . ' ' . $fields['start_time'];
+        $endDateTime = $fields['end_date'] . ' ' . $fields['end_time'];
 
         $start = Carbon::createFromFormat('Y-m-d H:i:s', $startDateTime, $timezone)->setTimezone('UTC');
         $end = Carbon::createFromFormat('Y-m-d H:i:s', $endDateTime, $timezone)->setTimezone('UTC');

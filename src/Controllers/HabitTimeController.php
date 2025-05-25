@@ -5,7 +5,6 @@ namespace NickKlein\Habits\Controllers;
 use NickKlein\Habits\Requests\HabitTimeRequests;
 use NickKlein\Habits\Requests\HabitTimerRequests;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
-use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
 use App\Services\LogsService;
 use Carbon\Carbon;
@@ -19,6 +18,7 @@ use NickKlein\Habits\Repositories\TagsRepository;
 use NickKlein\Habits\Services\TagsService;
 use NickKlein\Tags\Requests\TagRequest;
 
+// TODO: Rename HabitTimeController to HabitTransactionsController
 class HabitTimeController extends Controller
 {
     public function __construct(private HabitService $habitService, private HabitInsightRepository $habitInsightRepository)
@@ -36,8 +36,7 @@ class HabitTimeController extends Controller
     public function create()
     {
         $timezone = Auth::user()?->timezone ?? config('app.timezone');
-        $now = Carbon::now($timezone);
-        $later = $now->copy()->addMinutes(15);
+        $now = $later = Carbon::now($timezone);
 
         return Inertia::render('Habits/Add', [
             'habits' => $this->habitService->getUserHabits(Auth::user()->id),
@@ -59,8 +58,7 @@ class HabitTimeController extends Controller
     public function storeHabitTransaction(HabitTimeRequests $request)
     {
         $fields = $request->validated();
-        $fields['value'] = $fields['value'] ?? 0;
-        $response = $this->habitService->storeHabitTransaction(Auth::user()->id, Auth::user()->timezone, $fields['habit_id'], $fields['value'], $fields['start_date'], $fields['start_time'], $fields['end_date'], $fields['end_time']);
+        $response = $this->habitService->storeHabitTransaction(Auth::user()->id, Auth::user()->timezone, $fields);
         if ($response) {
             return back()->with([
                 'message' => 'Habit time added successfully',
@@ -103,7 +101,7 @@ class HabitTimeController extends Controller
     public function editHabitTransaction(int $habitTimesId, TagsRepository $tagsRepository)
     {
         return Inertia::render('Habits/Edit', [
-            'item' => $this->habitService->getHabitTime(Auth::user()->id, Auth::user()->timezone, $habitTimesId),
+            'item' => $this->habitService->getHabitTransaction(Auth::user()->id, Auth::user()->timezone, $habitTimesId),
             'habits' => $this->habitService->getUserHabits(Auth::user()->id),
             'tags' => $tagsRepository->listHabitTimesTags($habitTimesId, Auth::user()->id),
             'tagsAddUrl' => route('habits.transactions.edit.add-tag', ['habitTimesId' => $habitTimesId]),

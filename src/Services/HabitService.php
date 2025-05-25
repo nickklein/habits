@@ -94,13 +94,13 @@ class HabitService
         return $handler->updateValue($habitTimeId, $userId, $timezone, $habitId, $value, $startDate, $startTime, $endDate, $endTime);
     }
 
-    public function storeHabitTransaction(int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    public function storeHabitTransaction(int $userId, string $timezone = 'UTC', array $fields): bool
     {
         // Need to figure out what the type for this habit is for the user
-        $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
+        $habitUser = HabitUser::where('habit_id', $fields['habit_id'])->where('user_id', $userId)->first();
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        return $handler->storeValue($userId, $timezone, $habitId, $value, $startDate, $startTime, $endDate, $endTime);
+        return $handler->storeValue($userId, $timezone, $fields['habit_id'], $fields);
     }
 
     /**
@@ -150,9 +150,9 @@ class HabitService
      * @param integer $habitTimesId
      * @return array
      */
-    public function getHabitTime(int $userId, string $timezone = 'UTC',  int $habitTimesId): array
+    public function getHabitTransaction(int $userId, string $timezone = 'UTC',  int $habitTimesId): array
     {
-        $habitTime = HabitTime::where('id', $habitTimesId)
+        $habitTime = HabitTime::with('habit.habit_users')->where('id', $habitTimesId)
             ->select('id', 'habit_id', 'start_time', 'end_time', 'duration')
             ->where('user_id', $userId)
             ->first();
@@ -160,6 +160,7 @@ class HabitService
         return [
             'id' => $habitTime->id,
             'habit_id' => $habitTime->habit_id,
+            'habit_type' => $habitTime->habit->habit_users->habit_type ?? 'time',
             'start_date' => Carbon::parse($habitTime->start_time)->setTimezone($timezone)->format('Y-m-d'),
             'start_time' => Carbon::parse($habitTime->start_time)->setTimezone($timezone)->format('H:i:s'),
             'end_date' => $habitTime->end_time ? Carbon::parse($habitTime->end_time)->setTimezone($timezone)->format('Y-m-d') : null,

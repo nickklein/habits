@@ -14,15 +14,11 @@ class HabitSeeder
      */
     public function run(int $count = 1)
     {
-        $verbs = ['Read', 'Drink', 'Write', 'Exercise', 'Stretch', 'Cook', 'Walk', 'Listen to'];
-        $nouns = ['Book', 'Water', 'Journal', 'Music', 'Podcast', 'News', 'Language Lesson'];
-
         $faker = Faker::create();
         Habit::unguard();
         for($row = 0; $row <= $count; $row++) {
-            $habitName = $faker->randomElement($verbs) . ' ' . $faker->randomElement($nouns);
             Habit::create([
-                'name' => $habitName,
+                'name' => $faker->word(),
             ]);
         }
         Habit::reguard();

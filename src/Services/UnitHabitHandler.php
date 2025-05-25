@@ -22,15 +22,15 @@ class UnitHabitHandler implements HabitTypeInterface
     /**
      * Format a value for display
      *
-     * @param int $value Seconds
+     * @param int $value
      * @return array
      */
     public function formatValue(int $value): array
     {
         return [
             'value' => $value,
-            'unit' => 'times',
-            'unit_full' => 'times',
+            'unit' => $value > 1 ? 'counts' : 'count',
+            'unit_full' => $value > 1 ? 'counts' : 'count',
         ];
     }
 
@@ -198,21 +198,18 @@ class UnitHabitHandler implements HabitTypeInterface
     /**
      * Stores a new row in the habit_time(habit_transaction) table
      *
+     * @param $fields (int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime)
      **/
-    public function storeValue(int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    public function storeValue(int $userId, string $timezone = 'UTC', int $habitId, array $fields): bool
     {
-        $startDateTime = $startDate . ' ' . $startTime;
-        $endDateTime = $endDate . ' ' . $endTime;
-
-        $start = Carbon::createFromFormat('Y-m-d H:i:s', $startDateTime, $timezone)->setTimezone('UTC');
-        $end = Carbon::createFromFormat('Y-m-d H:i:s', $endDateTime, $timezone)->setTimezone('UTC');
+        $start = $end = Carbon::now($timezone)->timezone('UTC');
 
         $habitTime = new HabitTime;
         $habitTime->habit_id = $habitId;
         $habitTime->user_id = $userId;
         $habitTime->start_time = $start;
         $habitTime->end_time = $end;
-        $habitTime->duration = $value;
+        $habitTime->duration = $fields['value'];
 
         return $habitTime->save();
     }
