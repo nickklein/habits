@@ -17,6 +17,9 @@ class PublicAPI
      */
     public function handle(Request $request, Closure $next)
     {
+        // NOTE: Danger.
+        /*return $next($request);*/
+
         $authorizationHeader = $request->header('Authorization');
         if (empty($authorizationHeader) || !preg_match('/^Bearer\s(\S+)$/', $authorizationHeader, $matches)) {
             return abort(404, 'Unauthorized: Bearer token is missing or invalid.');

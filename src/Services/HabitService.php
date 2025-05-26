@@ -77,18 +77,37 @@ class HabitService
      * @return boolean
      *
      */
-    public function manageHabitTransaction(int $habitId, int $userId, string $timezone = 'UTC', string $status): bool
+    public function startOrEndTimer(int $habitId, int $userId, string $timezone = 'UTC', string $status): bool
     {
         $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
+        if (!$habitUser) {
+            return false;
+        }
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        return $handler->recordValue($habitId, $userId, 0, $timezone, $status);
+        $fields['status'] = $status;
+
+        return $handler->recordValue($habitId, $userId, $timezone, $fields);
+    }
+
+    public function saveHabitTransaction(int $habitId, int $userId, string $timezone = 'UTC')
+    {
+        $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
+        if (!$habitUser) {
+            return false;
+        }
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+
+        return $handler->recordValue($habitId, $userId, $timezone, []);
     }
 
     public function updateHabitTransaction(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
     {
         // Need to figure out what the type for this habit is for the user
         $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
+        if (!$habitUser) {
+            return false;
+        }
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
         return $handler->updateValue($habitTimeId, $userId, $timezone, $habitId, $value, $startDate, $startTime, $endDate, $endTime);
@@ -98,6 +117,10 @@ class HabitService
     {
         // Need to figure out what the type for this habit is for the user
         $habitUser = HabitUser::where('habit_id', $fields['habit_id'])->where('user_id', $userId)->first();
+        if (!$habitUser) {
+            return false;
+        }
+
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
         return $handler->storeValue($userId, $timezone, $fields['habit_id'], $fields);

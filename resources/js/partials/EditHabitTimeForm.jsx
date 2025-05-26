@@ -14,6 +14,7 @@ function EditHabitTimeForm(props) {
 
     const { data, setData, errors, put, reset, processing, recentlySuccessful } = useForm({
         habit_id: props.item.habit_id,
+        habit_type: props.item.habit_type,
         start_date: props.item.start_date,
         start_time: props.item.start_time,
         end_date: props.item.end_date,
@@ -35,6 +36,12 @@ function EditHabitTimeForm(props) {
             },
         });
     }
+    useEffect(() => {
+        const selectedHabit = props.habits.find(habit => habit.value == data.habit_id);
+        if (selectedHabit) {
+            setData('habit_type', selectedHabit.habit_type);
+        }
+    }, [data.habit_id]);
 
     return (
         <>
@@ -62,70 +69,76 @@ function EditHabitTimeForm(props) {
                     <InputError message={errors.start_time} className="mt-2" />
                 </div>
 
-                <div>
-                    <InputLabel for="start_time" value="Start Time" />
+                { data.habit_type === 'time' && (
+                <>
+                    <div>
+                        <InputLabel for="start_time" value="Start Time" />
 
-                    <TextInput
-                        id="start_date"
-                        ref={startTimeInput}
-                        value={data.start_date}
-                        handleChange={(event) => setData('start_date', event.target.value)}
-                        type="date"
-                        className="mt-1 block w-full"
-                    />
+                        <TextInput
+                            id="start_date"
+                            ref={startTimeInput}
+                            value={data.start_date}
+                            handleChange={(event) => setData('start_date', event.target.value)}
+                            type="date"
+                            className="mt-1 block w-full"
+                        />
 
-                    <TextInput
-                        id="start_time"
-                        ref={startTimeInput}
-                        value={data.start_time}
-                        handleChange={(event) => setData('start_time', event.target.value)}
-                        type="time"
-                        className="mt-1 block w-full"
-                    />
-
-
-                    <InputError message={errors.start_time} className="mt-2" />
-                </div>
-
-                <div>
-                    <InputLabel for="end_time" value="End Time" />
-
-                    <TextInput
-                        id="end_date"
-                        ref={startTimeInput}
-                        value={data.end_date}
-                        handleChange={(event) => setData('end_date', event.target.value)}
-                        type="date"
-                        className="mt-1 block w-full"
-                    />
-
-                    <TextInput
-                        id="end_time"
-                        ref={startTimeInput}
-                        value={data.end_time}
-                        handleChange={(event) => setData('end_time', event.target.value)}
-                        type="time"
-                        className="mt-1 block w-full"
-                    />
-
-                    <InputError message={errors.start_time} className="mt-2" />
-                </div>
-
-                <div>
-                    <InputLabel for="value" value="Value" />
-
-                    <TextInput
-                        id="value"
-                        ref={startTimeInput}
-                        value={data.duration}
-                        handleChange={(event) => setData('duration', event.target.value)}
-                        type="number"
-                        className="mt-1 block w-full"
-                    />
+                        <TextInput
+                            id="start_time"
+                            ref={startTimeInput}
+                            value={data.start_time}
+                            handleChange={(event) => setData('start_time', event.target.value)}
+                            type="time"
+                            className="mt-1 block w-full"
+                        />
 
 
-                    <InputError message={errors.duration} className="mt-2" />
-                </div>
+                        <InputError message={errors.start_time} className="mt-2" />
+                    </div>
+
+                    <div>
+                        <InputLabel for="end_time" value="End Time" />
+
+                        <TextInput
+                            id="end_date"
+                            ref={startTimeInput}
+                            value={data.end_date}
+                            handleChange={(event) => setData('end_date', event.target.value)}
+                            type="date"
+                            className="mt-1 block w-full"
+                        />
+
+                        <TextInput
+                            id="end_time"
+                            ref={startTimeInput}
+                            value={data.end_time}
+                            handleChange={(event) => setData('end_time', event.target.value)}
+                            type="time"
+                            className="mt-1 block w-full"
+                        />
+
+                        <InputError message={errors.start_time} className="mt-2" />
+                    </div>
+                </>
+                )}
+
+                { data.habit_type !== 'time' && (
+                    <div>
+                        <InputLabel for="value" value="Value" />
+
+                        <TextInput
+                            id="value"
+                            ref={startTimeInput}
+                            value={data.duration}
+                            handleChange={(event) => setData('duration', event.target.value)}
+                            type="number"
+                            className="mt-1 block w-full"
+                        />
+
+
+                        <InputError message={errors.duration} className="mt-2" />
+                    </div>
+                )}
 
                 <div className="flex items-center gap-4">
                     <PrimaryButton processing={processing}>Save</PrimaryButton>

@@ -150,14 +150,13 @@ class TimeHabitHandler implements HabitTypeInterface
      *
      * @param int $habitId
      * @param int $userId
-     * @param int $value Not used for time habits - use string status instead
      * @param string $timezone
-     * @param string $status 'on' or 'off'
+     * @param array $fields ('status')
      * @return bool
      */
-    public function recordValue(int $habitId, int $userId, int $value = 0, string $timezone = 'UTC', string $status = 'on'): bool
+    public function recordValue(int $habitId, int $userId, string $timezone = 'UTC', array $fields): bool
     {
-        if ($status === 'on') {
+        if ($fields['status'] === 'on') {
             $habitTime = new HabitTime;
             $habitTime->habit_id = $habitId;
             $habitTime->user_id = $userId;

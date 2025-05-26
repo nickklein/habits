@@ -139,39 +139,21 @@ class UnitHabitHandler implements HabitTypeInterface
      *
      * @param int $habitId
      * @param int $userId
-     * @param int $value Not used for time habits - use string status instead
      * @param string $timezone
-     * @param string $status 'on' or 'off'
+     * @param array $fields ('value')
      * @return bool
      */
-    public function recordValue(int $habitId, int $userId, int $value = 0, string $timezone = 'UTC', string $status = 'on'): bool
+    public function recordValue(int $habitId, int $userId, string $timezone = 'UTC', array $fields): bool
     {
-        if ($status === 'on') {
-            $habitTime = new HabitTime;
-            $habitTime->habit_id = $habitId;
-            $habitTime->user_id = $userId;
-            // Convert current user-local time to UTC
-            $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
-            $habitTime->end_time = null;
-
-            return $habitTime->save();
-        }
-
-        $habitTime = HabitTime::where('habit_id', $habitId)
-            ->where('user_id', $userId)
-            ->whereNotNull('start_time')
-            ->whereNull('end_time')
-            ->first();
-
-        if (!$habitTime) {
-            return false;
-        }
-
+        $habitTime = new HabitTime;
+        $habitTime->habit_id = $habitId;
+        $habitTime->user_id = $userId;
+        $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
         $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
-        $habitTime->duration = $value;
+        $habitTime->duration = 1;
 
         return $habitTime->save();
-    }
+}
 
     public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
     {

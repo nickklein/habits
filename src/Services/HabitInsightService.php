@@ -586,8 +586,11 @@ class HabitInsightService
             $previousWeek = $currentWeek;
         }
 
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+        $goalFormattedValues = $handler->formatValue($habitUser->streak_goal);
+
         return [
-            'goals' => ($habitUser->streak_goal / 60) . ' minutes',
+            'goals' => $goalFormattedValues['value'] . ' ' . $goalFormattedValues['unit_full'],
             'goalsType' => 'Weeks',
             'currentStreak' => $currentStreakCount,
             'longestStreak' => $longestStreakCount,
@@ -644,9 +647,11 @@ class HabitInsightService
             $previousDate = $currentDate;
         }
 
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+        $goalFormattedValues = $handler->formatValue($habitUser->streak_goal);
 
         return [
-            'goals' => ($habitUser->streak_goal / 60) . ' minutes',
+            'goals' => $goalFormattedValues['value'] . ' ' . $goalFormattedValues['unit_full'],
             'goalsType' => 'Days',
             'currentStreak' => $currentStreakCount,
             'longestStreak' => $longestStreakCount,
