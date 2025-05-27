@@ -183,7 +183,7 @@ class TimeHabitHandler implements HabitTypeInterface
         return $habitTime->save();
     }
 
-    public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', array $fields): bool
     {
         $habitTime = HabitTime::where('id', $habitTimeId)
             ->where('user_id', $userId)
@@ -194,10 +194,10 @@ class TimeHabitHandler implements HabitTypeInterface
             return false;
         }
 
-        $startDateTime = Carbon::parse("{$startDate} {$startTime}", $timezone)->timezone('UTC');
-        $endDateTime = Carbon::parse("{$endDate} {$endTime}", $timezone)->timezone('UTC');
+        $startDateTime = Carbon::parse("{$fields['start_date']} {$fields['start_time']}", $timezone)->timezone('UTC');
+        $endDateTime = Carbon::parse("{$fields['end_date']} {$fields['end_time']}", $timezone)->timezone('UTC');
 
-        $habitTime->habit_id = $habitId;
+        $habitTime->habit_id = $fields['habit_id'];
         $habitTime->start_time = $startDateTime;
         $habitTime->end_time = $endDateTime;
         $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);

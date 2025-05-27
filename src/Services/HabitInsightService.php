@@ -2,9 +2,7 @@
 
 namespace NickKlein\Habits\Services;
 
-use App\Services\PushoverService;
 use NickKlein\Habits\Models\Habit;
-use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use Carbon\Carbon;
@@ -40,6 +38,9 @@ class HabitInsightService
         22 => 'violet',
     ];
 
+    const GOAL_PERIOD_DAILY = 'daily';
+    const GOAL_PERIOD_WEEKLY = 'weekly';
+
     public function __construct(private HabitTypeFactory $habitTypeFactory)
     {
         //
@@ -59,11 +60,11 @@ class HabitInsightService
     public function getDailySummaryForHabits(int $userId, string $timezone = 'UTC', Collection $habitsUser, HabitService $service, HabitInsightRepository $insightRepository): array
     {
         $dateRanges = [
-            'daily' => [
+            self::GOAL_PERIOD_DAILY => [
                 'start' => Carbon::today($timezone)->startOfDay()->setTimezone('UTC'),
                 'end' => Carbon::today($timezone)->endOfDay()->setTimezone('UTC'),
             ],
-            'weekly' => [
+            self::GOAL_PERIOD_WEEKLY => [
                 'start' => Carbon::now($timezone)->startOfWeek()->setTimezone('UTC'),
                 'end' => Carbon::now($timezone)->endOfWeek()->setTimezone('UTC'),
             ]
@@ -142,13 +143,12 @@ class HabitInsightService
         // WARNING. Really messy code that needs to be cleaned up. 
         $streakSummary = [];
         $habitUser = HabitUser::with(['habit', 'children'])->where('user_id', $userId)
-            ->whereIn('habit_id', [10, 11, 5, 9, 14, 15, 16, 19, 8, 4])
+            /*->whereIn('habit_id', [10, 11, 5, 9, 14, 15, 16, 19, 8, 4])*/
             ->whereNotNull('streak_goal')
             ->orderBy('streak_time_type', 'ASC')
             ->get();
         $notification = '';
         $insightsRepository = app(HabitInsightRepository::class);
-        $habitService = app(HabitService::class);
         $startOfDay = Carbon::today($timezone)->startOfDay()->setTimezone('UTC');
         $endOfDay = Carbon::today($timezone)->endOfDay()->setTimezone('UTC');
         $startOfWeek = Carbon::today($timezone)->startOfWeek()->setTimezone('UTC');
@@ -157,8 +157,9 @@ class HabitInsightService
         foreach($habitUser as $item) {
             // TODO: Convert this to use HabitTypeFactory
             $habitIdsArray = $this->fetchHabitIdsBasedOnHierarchy($item);
+            $handler = $this->habitTypeFactory->getHandler($item->habit_type);
 
-            if ($item->streak_time_type === 'daily') {
+            if ($item->streak_time_type === self::GOAL_PERIOD_DAILY) {
                 $dailyTotals = $insightsRepository->getDailyTotalsByHabitId($userId, $timezone, $habitIdsArray, $startOfDay, $endOfDay);
                 // if the total duration is higher than the goal, then don't show in the notification
                 if ($dailyTotals->first() && $item->streak_goal < $dailyTotals->first()->total_duration) {
@@ -166,16 +167,17 @@ class HabitInsightService
                 }
 
                 $name = $item->habit->name;
-                $total = $habitService->convertSecondsToMinutesOrHours($dailyTotals->sum('total_duration'));
+                $formattedGoalValues = $handler->formatValue($item->streak_goal);
+                $formattedTotalValues = $handler->formatValue($dailyTotals->sum('total_duration'));
                 $streakSummary[] = [
                     'name' => $name,
                     'type' => 'd',
-                    'goal' => round($item->streak_goal / 60) . 'm',
-                    'total' => $total,
+                    'goal' => $formattedGoalValues['value'] . $formattedGoalValues['unit'],
+                    'total' => $formattedTotalValues['value'] . $formattedTotalValues['unit'],
                 ];
             }
 
-            if ($item->streak_time_type === 'weekly') {
+            if ($item->streak_time_type === self::GOAL_PERIOD_WEEKLY) {
                 $weeklyTotals = $insightsRepository->getWeeklyTotalsByHabitId($userId, $timezone, $habitIdsArray, $startOfWeek, $endOfWeek);
                 // if the total duration is higher than the goal, then don't show in the notification
                 if ($weeklyTotals->first() && $item->streak_goal < $weeklyTotals->first()->total_duration) {
@@ -183,14 +185,15 @@ class HabitInsightService
                 }
 
                 $name = $item->habit->name;
-                $total = $habitService->convertSecondsToMinutesOrHours($weeklyTotals->sum('total_duration'));
+                $formattedGoalValues = $handler->formatValue($item->streak_goal);
+                $formattedTotalValues = $handler->formatValue($weeklyTotals->sum('total_duration'));
+
                 $streakSummary[] = [
                     'name' => $name,
                     'type' => 'w',
-                    'goal' => round($item->streak_goal / 60) . 'm',
-                    'total' => $total,
+                    'goal' => $formattedGoalValues['value'] . $formattedGoalValues['unit'],
+                    'total' => $formattedTotalValues['value'] . $formattedTotalValues['unit'],
                 ];
-                $notification .= $name . '(w): ' . $total . ', ';
             }
         }
 
@@ -532,7 +535,7 @@ class HabitInsightService
             return [];
         }
 
-        if ($habitUser->streak_time_type === 'weekly') {
+        if ($habitUser->streak_time_type === self::GOAL_PERIOD_WEEKLY) {
             return $this->getWeeklyStreaks($habitUser, $userId, $timezone, $habitId, $habitInsightRepository);
         }
 
@@ -701,11 +704,12 @@ class HabitInsightService
      */
     private function fetchTotalDurationBasedOnStreakType(HabitUser $habit, int $userId, string $timezone = 'UTC', array $habitIds, array $dateRanges, HabitInsightRepository $insightRepository)
     {
-        if ($habit->streak_time_type === 'weekly') {
-            $totals = $insightRepository->getWeeklyTotalsByHabitId($userId, $timezone, $habitIds, $dateRanges['weekly']['start'], $dateRanges['weekly']['end']);
-        } else {
-            $totals = $insightRepository->getDailyTotalsByHabitId($userId, $timezone, $habitIds, $dateRanges['daily']['start'], $dateRanges['daily']['end']);
+        if ($habit->streak_time_type === self::GOAL_PERIOD_WEEKLY) {
+            $totals = $insightRepository->getWeeklyTotalsByHabitId($userId, $timezone, $habitIds, $dateRanges[self::GOAL_PERIOD_WEEKLY]['start'], $dateRanges[self::GOAL_PERIOD_WEEKLY]['end']);
+
+            return $totals->sum('total_duration');
         }
+        $totals = $insightRepository->getDailyTotalsByHabitId($userId, $timezone, $habitIds, $dateRanges[self::GOAL_PERIOD_DAILY]['start'], $dateRanges[self::GOAL_PERIOD_DAILY]['end']);
 
         return $totals->sum('total_duration');
     }

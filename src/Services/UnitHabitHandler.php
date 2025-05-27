@@ -29,7 +29,7 @@ class UnitHabitHandler implements HabitTypeInterface
     {
         return [
             'value' => $value,
-            'unit' => $value > 1 ? 'counts' : 'count',
+            'unit' => 'x',
             'unit_full' => $value > 1 ? 'counts' : 'count',
         ];
     }
@@ -150,12 +150,12 @@ class UnitHabitHandler implements HabitTypeInterface
         $habitTime->user_id = $userId;
         $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
         $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
-        $habitTime->duration = 1;
+        $habitTime->duration = $fields['value'] ?? 1;
 
         return $habitTime->save();
 }
 
-    public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', array $fields): bool
     {
         $habitTime = HabitTime::where('id', $habitTimeId)
             ->where('user_id', $userId)
@@ -166,13 +166,10 @@ class UnitHabitHandler implements HabitTypeInterface
             return false;
         }
 
-        $startDateTime = Carbon::parse("{$startDate} {$startTime}", $timezone)->timezone('UTC');
-        $endDateTime = Carbon::parse("{$endDate} {$endTime}", $timezone)->timezone('UTC');
-
-        $habitTime->habit_id = $habitId;
-        $habitTime->start_time = $startDateTime;
-        $habitTime->end_time = $endDateTime;
-        $habitTime->duration = $value;
+        $habitTime->habit_id = $fields['habit_id'];
+        $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
+        $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
+        $habitTime->duration = $fields['value'];
 
         return $habitTime->save();
     }

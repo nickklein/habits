@@ -19,7 +19,7 @@ function EditHabitTimeForm(props) {
         start_time: props.item.start_time,
         end_date: props.item.end_date,
         end_time: props.item.end_time,
-        duration: props.item.duration,
+        value: props.item.duration,
     });
 
 
@@ -29,7 +29,8 @@ function EditHabitTimeForm(props) {
         put(route('habits.transactions.update', props.item.id), {
             preserveScroll: true,
             onSuccess: () => setData('start_time', data.start_time),
-            onError: () => {
+            onError: (err) => {
+                console.log(err);
                 if (errors.start_time) {
                     reset('start_time');
                 }
@@ -129,8 +130,8 @@ function EditHabitTimeForm(props) {
                         <TextInput
                             id="value"
                             ref={startTimeInput}
-                            value={data.duration}
-                            handleChange={(event) => setData('duration', event.target.value)}
+                            value={data.value}
+                            handleChange={(event) => setData('value', event.target.value)}
                             type="number"
                             className="mt-1 block w-full"
                         />

@@ -64,12 +64,14 @@ class HabitTimeSeeder
     {
         $startDate = $endDate = (clone $baseDate)->addDays($day);
 
-        HabitTime::create([
-            'user_id' => 1,
-            'habit_id' => $habit->habit_id,
-            'start_time' => $startDate->format('Y-m-d H:i:s'),
-            'end_time' => $endDate->format('Y-m-d H:i:s'),
-            'duration' => 1,
-        ]);
+        for($today = 0; $today < rand(1,4); $today++) {
+            HabitTime::create([
+                'user_id' => 1,
+                'habit_id' => $habit->habit_id,
+                'start_time' => $startDate->format('Y-m-d H:i:s'),
+                'end_time' => $endDate->format('Y-m-d H:i:s'),
+                'duration' => 1,
+            ]);
+        }
     }
 }
