@@ -71,10 +71,20 @@ class HabitTimeController extends Controller
         ], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
-    public function store(int $userId, int $habitTimeId, HabitService $habitService )
+
+    /**
+     * Tracks the value for a specific habit transaction
+     * 
+     * @todo obviously better to use oauth if this was a real app
+     * @param integer $userId
+     * @param integer $habitId
+     * @param HabitService $habitService
+     * @return Response
+     */
+    public function store(int $userId, int $habitTimeId, string $value, HabitService $habitService )
     {
         $user = User::find($userId);
-        $response = $habitService->saveHabitTransaction($habitTimeId, $userId, $user->timezone);
+        $response = $habitService->saveHabitTransaction($habitTimeId, $userId, $user->timezone, $value);
 
         if ($response) {
             return response()->json([

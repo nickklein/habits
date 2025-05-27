@@ -74,6 +74,7 @@ class HabitService
      * @param integer $habitId
      * @param integer $userId
      * @param string $timezone
+     * @param string $value
      * @return boolean
      *
      */
@@ -90,7 +91,18 @@ class HabitService
         return $handler->recordValue($habitId, $userId, $timezone, $fields);
     }
 
-    public function saveHabitTransaction(int $habitId, int $userId, string $timezone = 'UTC')
+
+    /**
+     * Manage Habit Time by turning it on/off
+     *
+     * @param integer $habitId
+     * @param integer $userId
+     * @param string $timezone
+     * @param string $value
+     * @return boolean
+     *
+     */
+    public function saveHabitTransaction(int $habitId, int $userId, string $timezone = 'UTC', string $value)
     {
         $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
         if (!$habitUser) {
@@ -98,19 +110,19 @@ class HabitService
         }
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        return $handler->recordValue($habitId, $userId, $timezone, []);
+        return $handler->recordValue($habitId, $userId, $timezone, ['value' => $value]);
     }
 
-    public function updateHabitTransaction(int $habitTimeId, int $userId, string $timezone = 'UTC', int $habitId, int $value = 0, string $startDate, string $startTime, string $endDate, string $endTime): bool
+    public function updateHabitTransaction(int $habitTimeId, int $userId, string $timezone = 'UTC', array $fields): bool
     {
         // Need to figure out what the type for this habit is for the user
-        $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
+        $habitUser = HabitUser::where('habit_id', $fields['habit_id'])->where('user_id', $userId)->first();
         if (!$habitUser) {
             return false;
         }
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        return $handler->updateValue($habitTimeId, $userId, $timezone, $habitId, $value, $startDate, $startTime, $endDate, $endTime);
+        return $handler->updateValue($habitTimeId, $userId, $timezone, $fields);
     }
 
     public function storeHabitTransaction(int $userId, string $timezone = 'UTC', array $fields): bool
