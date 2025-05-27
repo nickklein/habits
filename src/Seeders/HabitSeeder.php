@@ -18,9 +18,10 @@ class HabitSeeder
         Habit::unguard();
         for($row = 0; $row <= $count; $row++) {
             Habit::create([
-                'name' => $faker->name,
+                'name' => $faker->word(),
             ]);
         }
         Habit::reguard();
     }
+
 }

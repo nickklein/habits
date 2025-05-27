@@ -47,7 +47,7 @@ export default function Transactions(props) {
                         <th className="px-4 py-3">Habit Name</th>
                         <th className="px-4 py-3">Start Time</th>
                         <th className="px-4 py-3">End Time</th>
-                        <th className="px-4 py-3">Duration</th>
+                        <th className="px-4 py-3">Unit</th>
                         <th className="px-4 py-3">Delete</th>
                         </tr>
                     </thead>

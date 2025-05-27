@@ -4,6 +4,7 @@ namespace NickKlein\Habits\Tests;
 
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use NickKlein\Habits\HabitsServiceProvider;
@@ -26,7 +27,16 @@ class TestCase extends Orchestra
         parent::setUp();
 
         $this->runMigrations();
+        $this->truncateTables();
         $this->seedData();
+    }
+    
+    protected function truncateTables()
+    {
+        DB::table('habit_transactions')->truncate();
+        DB::table('habit_user')->truncate();
+        DB::table('habits')->truncate();
+        DB::table('habit_times_tags')->truncate();
     }
 
     public function runMigrations()
@@ -75,10 +85,7 @@ class TestCase extends Orchestra
     /**
      * Set up the environment for the tests.
      *
-     * @param \Illuminate\Foundation\Application $app
-     * @return void
-     */
-    protected function getEnvironmentSetUp($app)
+     * @param \Illuminate\Foundation\Application $app @return void */ protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('auth.providers.users.model', \NickKlein\Habits\Tests\TestModels\User::class);
         $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
@@ -86,6 +93,7 @@ class TestCase extends Orchestra
 
     public function tearDown(): void
     {
+        $this->truncateTables();
         parent::tearDown();
     }
 }

@@ -9,7 +9,6 @@ use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
 use NickKlein\Habits\Services\HabitService;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Request;
 
 class HabitTimeController extends Controller
 {
@@ -17,7 +16,7 @@ class HabitTimeController extends Controller
      * Fetch Daily Notifications (PUBLIC API)
      * @todo obviously better to use oauth if this was a real app
      * @param integer $userId
-     * @param HabitService $habitService
+     * @param HabitInsightService $habitInsightService
      * @return Response
      */
     public function getDailyNotification(int $userId, HabitInsightService $habitInsightService)
@@ -34,7 +33,7 @@ class HabitTimeController extends Controller
      * Get Weekly Notifications (PUBLIC API)
      * @todo obviously better to use oauth if this was a real app
      * @param integer $userId
-     * @param HabitService $habitService
+     * @param HabitInsightService $habitInsightService
      * @return Response
      */
     public function getWeeklyNotifications(int $userId, HabitInsightService $habitInsightService)
@@ -52,13 +51,12 @@ class HabitTimeController extends Controller
      * @param integer $userId
      * @param integer $habitId
      * @param HabitService $habitService
-     * @param HabitInsightRepository $habitInsightRepository
      * @return Response
      */
-    public function store(int $userId, int $habitTimeId, string $status, HabitInsightService $habitInsightService)
+    public function startOrEndTimer(int $userId, int $habitTimeId, string $status, HabitService $habitService)
     {
         $user = User::find($userId);
-        $response = $habitInsightService->manageHabitTime($habitTimeId, $userId, $user->timezone, $status);
+        $response = $habitService->startOrEndTimer($habitTimeId, $userId, $user->timezone, $status);
         if ($response) {
             return response()->json([
                 'status' => 'success',
@@ -71,6 +69,24 @@ class HabitTimeController extends Controller
             'status' => 'error',
             'message' => 'Habit time not added',
         ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    public function store(int $userId, int $habitTimeId, HabitService $habitService )
+    {
+        $user = User::find($userId);
+        $response = $habitService->saveHabitTransaction($habitTimeId, $userId, $user->timezone);
+
+        if ($response) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Habit added.',
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Habit not added',
+        ]);
     }
 
     /**

@@ -8,7 +8,8 @@ Route::middleware(['web'])->group(function () {
         // Habits
         Route::get('/habit/user/{userId}/average', [PublicHabitTimeController::class, 'getWeeklyNotifications'])->name('habit.time');
         Route::get('/habit/user/{userId}/daily', [PublicHabitTimeController::class, 'getDailyNotification'])->name('habit.daily');
-        Route::get('/habit/user/{userId}/habit/{habitTimeId}/timer/{status}', [PublicHabitTimeController::class, 'store'])->name('habit.time.store-public');
+        Route::get('/habit/user/{userId}/habit/{habitTimeId}/timer/{status}', [PublicHabitTimeController::class, 'startOrEndTimer'])->name('habit.time.store-public');
+        Route::get('/habit/user/{userId}/habit/{habitTimeId}/save', [PublicHabitTimeController::class, 'store'])->name('habit.time.save-public');
 
         Route::get('/habit/user/{userId}/habit/check-status', [PublicHabitTimeController::class, 'isHabitActive'])->name('habit.time.check-status-public');
         // Multiple ids at the same time

@@ -45,10 +45,11 @@ class RunSeederCommand extends Command
         // Add habits
         $this->habitSeeder->run(8);
 
-        // Add habit times
-        $this->habitTimeSeeder->run([], 15);
 
         // connect relationships
         $this->habitUserSeeder->run([]);
+
+        // Add habit times
+        $this->habitTimeSeeder->run([], 60);
     }
 }

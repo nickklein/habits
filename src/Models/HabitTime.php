@@ -10,6 +10,8 @@ class HabitTime extends Model
 {
     use HasFactory;
 
+    protected $table = 'habit_transactions';
+
     //@todo remove ids from fillables
     protected $fillable = [
         'user_id',
@@ -20,6 +22,11 @@ class HabitTime extends Model
     ];
 
     public function habit()
+    {
+        return $this->belongsTo(Habit::class, 'habit_id', 'habit_id');
+    }
+
+    public function habitUser()
     {
         return $this->belongsTo(Habit::class, 'habit_id', 'habit_id');
     }

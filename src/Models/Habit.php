@@ -8,7 +8,7 @@ class Habit extends Model
 {
     public $timestamps = false;
 
-    public function habit_times()
+    public function habit_transactions()
     {
         return $this->hasMany(HabitTime::class);
     }
