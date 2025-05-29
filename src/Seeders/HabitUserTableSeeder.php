@@ -37,7 +37,7 @@ class HabitUserTableSeeder
         $user = $user::InRandomOrder()->first();
 
         foreach ($habits as $habit) {
-            $habitType = $this->faker->randomElement(['time', 'unit']);
+            $habitType = $this->faker->randomElement(['time', 'unit', 'ml']);
 
             HabitUser::create(
                 [
@@ -56,6 +56,10 @@ class HabitUserTableSeeder
     {
         if ($habitType === 'time') {
             return $this->faker->numberBetween(60 * 5, 3600);
+        }
+
+        if ($habitType === 'ml') {
+            return $this->faker->numberBetween(1000, 2000);
         }
 
         return $this->faker->numberBetween(1, 5);

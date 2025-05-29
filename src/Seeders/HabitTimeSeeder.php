@@ -2,18 +2,14 @@
 
 namespace NickKlein\Habits\Seeders;
 
-use Carbon\Carbon;
-use Database\Factories\HabitTimeFactory;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Seeder;
-use NickKlein\Habits\Models\Habit;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
 
 class HabitTimeSeeder
 {
     const TIME_TYPE = 'time';
+    const ML_TYPE = 'ml';
     /**
      * Run the database seeds.
      *
@@ -39,6 +35,10 @@ class HabitTimeSeeder
                 if ($habit->habit_type === self::TIME_TYPE) {
                     $this->generateHabitTimes($habit, $baseDate, $i);
                     continue;
+                }
+
+                if ($habit->habit_type === self::ML_TYPE) {
+                    $this->generateHabitML($habit, $baseDate, $i);
                 }
                 
                 $this->generateHabitUnits($habit, $baseDate, $i);
@@ -71,6 +71,21 @@ class HabitTimeSeeder
                 'start_time' => $startDate->format('Y-m-d H:i:s'),
                 'end_time' => $endDate->format('Y-m-d H:i:s'),
                 'duration' => 1,
+            ]);
+        }
+    }
+
+    private function generateHabitML($habit, $baseDate, $day)
+    {
+        $startDate = $endDate = (clone $baseDate)->addDays($day);
+
+        for($today = 0; $today < rand(1,4); $today++) {
+            HabitTime::create([
+                'user_id' => 1,
+                'habit_id' => $habit->habit_id,
+                'start_time' => $startDate->format('Y-m-d H:i:s'),
+                'end_time' => $endDate->format('Y-m-d H:i:s'),
+                'duration' => rand(200, 300),
             ]);
         }
     }

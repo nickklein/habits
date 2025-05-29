@@ -27,8 +27,8 @@ class HabitTypeFactory
                 return new TimeHabitHandler();
             case 'unit':
                 return new UnitHabitHandler();
-            /*case 'ml':*/
-                /*return new MlHabitHandler();*/
+            case 'ml':
+                return new MLHabitHandler();
             default:
                 throw new \InvalidArgumentException("Unsupported habit type: {$habitType}");
         }
