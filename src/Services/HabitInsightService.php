@@ -146,8 +146,8 @@ class HabitInsightService
             /*->whereIn('habit_id', [10, 11, 5, 9, 14, 15, 16, 19, 8, 4])*/
             ->whereNotNull('streak_goal')
             ->whereNull('parent_id')
-            ->orderBy('habit_type')
             ->orderBy('streak_time_type')
+            ->orderBy('streak_goal')
             ->where('archive', false)
             ->get();
         $insightsRepository = app(HabitInsightRepository::class);
