@@ -157,31 +157,15 @@ class MLHabitHandler implements HabitTypeInterface
      * @param array $fields ('status')
      * @return bool
      */
+
     public function recordValue(int $habitId, int $userId, string $timezone = 'UTC', array $fields): bool
     {
-        if ($fields['status'] === 'on') {
-            $habitTime = new HabitTime;
-            $habitTime->habit_id = $habitId;
-            $habitTime->user_id = $userId;
-            // Convert current user-local time to UTC
-            $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
-            $habitTime->end_time = null;
-
-            return $habitTime->save();
-        }
-
-        $habitTime = HabitTime::where('habit_id', $habitId)
-            ->where('user_id', $userId)
-            ->whereNotNull('start_time')
-            ->whereNull('end_time')
-            ->first();
-
-        if (!$habitTime) {
-            return false;
-        }
-
+        $habitTime = new HabitTime;
+        $habitTime->habit_id = $habitId;
+        $habitTime->user_id = $userId;
+        $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
         $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
-        $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
+        $habitTime->duration = $fields['value'] ?? 1;
 
         return $habitTime->save();
     }
@@ -197,13 +181,10 @@ class MLHabitHandler implements HabitTypeInterface
             return false;
         }
 
-        $startDateTime = Carbon::parse("{$fields['start_date']} {$fields['start_time']}", $timezone)->timezone('UTC');
-        $endDateTime = Carbon::parse("{$fields['end_date']} {$fields['end_time']}", $timezone)->timezone('UTC');
-
         $habitTime->habit_id = $fields['habit_id'];
-        $habitTime->start_time = $startDateTime;
-        $habitTime->end_time = $endDateTime;
-        $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
+        $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
+        $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
+        $habitTime->duration = $fields['value'];
 
         return $habitTime->save();
     }
@@ -215,18 +196,14 @@ class MLHabitHandler implements HabitTypeInterface
      **/
     public function storeValue(int $userId, string $timezone = 'UTC', int $habitId, array $fields): bool
     {
-        $startDateTime = $fields['start_date'] . ' ' . $fields['start_time'];
-        $endDateTime = $fields['end_date'] . ' ' . $fields['end_time'];
-
-        $start = Carbon::createFromFormat('Y-m-d H:i:s', $startDateTime, $timezone)->setTimezone('UTC');
-        $end = Carbon::createFromFormat('Y-m-d H:i:s', $endDateTime, $timezone)->setTimezone('UTC');
+        $start = $end = Carbon::now($timezone)->timezone('UTC');
 
         $habitTime = new HabitTime;
         $habitTime->habit_id = $habitId;
         $habitTime->user_id = $userId;
         $habitTime->start_time = $start;
         $habitTime->end_time = $end;
-        $habitTime->duration = Carbon::parse($startDateTime)->diffInSeconds($endDateTime);
+        $habitTime->duration = $fields['value'];
 
         return $habitTime->save();
     }
