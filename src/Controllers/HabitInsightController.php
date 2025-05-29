@@ -25,6 +25,7 @@ class HabitInsightController extends Controller
             ->where('user_id', Auth::user()->id)
             ->where('archive', false)
             ->orderBy('streak_time_type')
+            ->orderByRaw('streak_goal IS NULL')
             ->orderBy('streak_goal')
             ->get();
 

@@ -147,6 +147,7 @@ class HabitInsightService
             ->whereNotNull('streak_goal')
             ->whereNull('parent_id')
             ->orderBy('streak_time_type')
+            ->orderByRaw('streak_goal IS NULL')
             ->orderBy('streak_goal')
             ->where('archive', false)
             ->get();
