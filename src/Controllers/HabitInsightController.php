@@ -24,6 +24,8 @@ class HabitInsightController extends Controller
             ->whereNull('parent_id')
             ->where('user_id', Auth::user()->id)
             ->where('archive', false)
+            ->orderBy('habit_type')
+            ->orderBy('streak_time_type')
             ->get();
 
         $habits = $insightService->getDailySummaryForHabits(Auth::user()->id, Auth::user()->timezone, $habitUser, $service, $insightRepository);

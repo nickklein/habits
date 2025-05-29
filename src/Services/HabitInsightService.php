@@ -145,9 +145,11 @@ class HabitInsightService
         $habitUser = HabitUser::with(['habit', 'children'])->where('user_id', $userId)
             /*->whereIn('habit_id', [10, 11, 5, 9, 14, 15, 16, 19, 8, 4])*/
             ->whereNotNull('streak_goal')
-            ->orderBy('streak_time_type', 'ASC')
+            ->whereNull('parent_id')
+            ->orderBy('habit_type')
+            ->orderBy('streak_time_type')
+            ->where('archive', false)
             ->get();
-        $notification = '';
         $insightsRepository = app(HabitInsightRepository::class);
         $startOfDay = Carbon::today($timezone)->startOfDay()->setTimezone('UTC');
         $endOfDay = Carbon::today($timezone)->endOfDay()->setTimezone('UTC');
