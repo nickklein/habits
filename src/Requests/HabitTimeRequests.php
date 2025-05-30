@@ -25,7 +25,7 @@ class HabitTimeRequests extends FormRequest
     {
         $rules = [
             'habit_id' => 'required|integer',
-            'habit_type' => 'required|in:time,unit',
+            'habit_type' => 'required|in:time,unit,ml',
         ];
 
         if ($this->habit_type === 'time') {
