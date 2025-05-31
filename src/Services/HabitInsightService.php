@@ -145,12 +145,11 @@ class HabitInsightService
         $habitUser = HabitUser::with(['habit', 'children'])->where('user_id', $userId)
             /*->whereIn('habit_id', [10, 11, 5, 9, 14, 15, 16, 19, 8, 4])*/
             ->whereNotNull('streak_goal')
-            ->whereNotNull('parent_id')
             ->orderBy('streak_time_type')
-            ->orderByRaw('streak_goal IS NULL')
             ->orderBy('streak_goal')
             ->where('archive', false)
             ->get();
+
         $insightsRepository = app(HabitInsightRepository::class);
         $startOfDay = Carbon::today($timezone)->startOfDay()->setTimezone('UTC');
         $endOfDay = Carbon::today($timezone)->endOfDay()->setTimezone('UTC');
