@@ -21,12 +21,11 @@ class HabitInsightController extends Controller
     public function index(HabitInsightService $insightService, HabitService $service, HabitInsightRepository $insightRepository)
     {
         $habitUser = HabitUser::with(['habit', 'children'])
+            ->join('habits', 'habit_user.habit_id', '=', 'habits.habit_id')
             ->whereNull('parent_id')
             ->where('user_id', Auth::user()->id)
             ->where('archive', false)
-            ->orderBy('streak_time_type')
-            ->orderByRaw('streak_goal IS NULL')
-            ->orderBy('streak_goal')
+            ->orderBy('habits.name')
             ->get();
 
         $habits = $insightService->getDailySummaryForHabits(Auth::user()->id, Auth::user()->timezone, $habitUser, $service, $insightRepository);

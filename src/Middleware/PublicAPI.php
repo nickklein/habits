@@ -18,7 +18,7 @@ class PublicAPI
     public function handle(Request $request, Closure $next)
     {
         // NOTE: Danger.
-        /*return $next($request);*/
+        return $next($request);
 
         $authorizationHeader = $request->header('Authorization');
         if (empty($authorizationHeader) || !preg_match('/^Bearer\s(\S+)$/', $authorizationHeader, $matches)) {
