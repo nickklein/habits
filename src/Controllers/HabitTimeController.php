@@ -148,7 +148,7 @@ class HabitTimeController extends Controller
     public function timerStore(HabitTimerRequests $request)
     {
         $fields = $request->validated();
-        $response = $this->habitService->manageHabitTransaction($fields['habit_id'], Auth::user()->id, Auth::user()->timezone, 'on');
+        $response = $this->habitService->startOrEndTimer($fields['habit_id'], Auth::user()->id, Auth::user()->timezone, 'on');
         if ($response) {
             return redirect()->route('habits.transactions')->with([
                 'message' => 'Habit time added successfully',
