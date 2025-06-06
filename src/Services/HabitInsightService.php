@@ -627,7 +627,7 @@ class HabitInsightService
         $today = Carbon::today($timezone)->setTimezone('UTC');
 
         foreach ($dailyTotals as $dailyTotal) {
-            $currentDate = Carbon::parse($dailyTotal->date);
+            $currentDate = Carbon::parse($dailyTotal->date_column);
 
             if ($previousDate && $previousDate->eq($currentDate->copy()->subDay(1)) && $dailyTotal->total_duration >= $habitUser->streak_goal) {
                 // We are continuing the streak.

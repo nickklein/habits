@@ -26,22 +26,18 @@ class HabitTimeRequests extends FormRequest
         $rules = [
             'habit_id' => 'required|integer',
             'habit_type' => 'required|in:time,unit,ml',
+            'start_date' => 'required|date_format:Y-m-d',
+            'start_time' => 'required',
+            'end_date' => 'required|date_format:Y-m-d',
+            'end_time' => 'required',
         ];
 
-        if ($this->habit_type === 'time') {
+        if ($this->habit_type !== 'time') {
             $rules += [
-                'start_date' => 'required|date_format:Y-m-d',
-                'start_time' => 'required',
-                'end_date' => 'required|date_format:Y-m-d',
-                'end_time' => 'required',
+                'value' => 'required|integer',
             ];
-
-            return $rules;
         }
 
-        $rules += [
-            'value' => 'required|integer',
-        ];
 
         return $rules;
     }

@@ -181,9 +181,12 @@ class MLHabitHandler implements HabitTypeInterface
             return false;
         }
 
+        $startDateTime = Carbon::parse("{$fields['start_date']} {$fields['start_time']}", $timezone)->timezone('UTC');
+        $endDateTime = Carbon::parse("{$fields['end_date']} {$fields['end_time']}", $timezone)->timezone('UTC');
+
         $habitTime->habit_id = $fields['habit_id'];
-        $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
-        $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
+        $habitTime->start_time = $startDateTime;
+        $habitTime->end_time = $endDateTime;
         $habitTime->duration = $fields['value'];
 
         return $habitTime->save();

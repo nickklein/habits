@@ -70,7 +70,6 @@ function EditHabitTimeForm(props) {
                     <InputError message={errors.start_time} className="mt-2" />
                 </div>
 
-                { data.habit_type === 'time' && (
                 <>
                     <div>
                         <InputLabel for="start_time" value="Start Time" />
@@ -121,7 +120,6 @@ function EditHabitTimeForm(props) {
                         <InputError message={errors.start_time} className="mt-2" />
                     </div>
                 </>
-                )}
 
                 { data.habit_type !== 'time' && (
                     <div>

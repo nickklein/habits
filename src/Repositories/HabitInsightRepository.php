@@ -70,10 +70,12 @@ class HabitInsightRepository
             });
         
         // Use DB raw expressions that explicitly use the same alias in both SELECT and GROUP BY
-        return $query->selectRaw($dateExpression . ' as date_column, SUM(duration) as total_duration', [$safeTimezone])
+        $sql = $query->selectRaw($dateExpression . ' as date_column, SUM(duration) as total_duration', [$safeTimezone])
             ->groupBy(DB::raw('date_column'))
             ->orderBy('date_column')
             ->get();
+
+        return $sql;
     }
 
 
