@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Habit extends Model
 {
-    public $timestamps = false;
+    protected $primaryKey = 'habit_id';
 
     public function habit_transactions()
     {

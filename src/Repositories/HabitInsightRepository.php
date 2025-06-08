@@ -217,11 +217,9 @@ class HabitInsightRepository
      * Grab latest transactions
      *
      **/
-    public function fetchNewHabitTransactions(int $lastTransactionId)
+    public function fetchNewHabitTransactions(string $lastUpdatedAt)
     {
-        return HabitTime::where('id', '>', $lastTransactionId)
-            ->whereNotNull('start_time')
-            ->whereNotNull('end_time')
+        return HabitTime::where('updated_at', '>', $lastUpdatedAt)
             ->get();
     }
 }

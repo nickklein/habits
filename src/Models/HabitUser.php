@@ -9,8 +9,6 @@ class HabitUser extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-
     protected $table = 'habit_user';
 
     public function habit()
