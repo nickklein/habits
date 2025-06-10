@@ -7,9 +7,11 @@ use NickKlein\Habits\Models\HabitUser;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection as SupportCollection;
+use NickKlein\Habits\Traits\EnvironmentAwareTrait;
 
 class HabitService
 {
+    use EnvironmentAwareTrait;
     // Create pagination constant
     const PAGINATE_LIMIT = 100;
 
@@ -80,7 +82,10 @@ class HabitService
      */
     public function startOrEndTimer(int $habitId, int $userId, string $timezone = 'UTC', string $status): bool
     {
-        $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
+        $habitUser = HabitUser::on($this->getDatabaseConnection())
+            ->where('habit_id', $habitId)
+            ->where('user_id', $userId)
+            ->first();
         if (!$habitUser) {
             return false;
         }
@@ -128,7 +133,10 @@ class HabitService
     public function storeHabitTransaction(int $userId, string $timezone = 'UTC', array $fields): bool
     {
         // Need to figure out what the type for this habit is for the user
-        $habitUser = HabitUser::where('habit_id', $fields['habit_id'])->where('user_id', $userId)->first();
+        $habitUser = HabitUser::on($this->getDatabaseConnection())
+            ->where('habit_id', $fields['habit_id'])
+            ->where('user_id', $userId)
+            ->first();
         if (!$habitUser) {
             return false;
         }

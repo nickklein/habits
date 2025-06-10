@@ -6,9 +6,11 @@ use Carbon\Carbon;
 use NickKlein\Habits\Interfaces\HabitTypeInterface;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
+use NickKlein\Habits\Traits\EnvironmentAwareTrait;
 
 class TimeHabitHandler implements HabitTypeInterface
 {
+    use EnvironmentAwareTrait;
     
     /**
      * Constructor
@@ -158,6 +160,7 @@ class TimeHabitHandler implements HabitTypeInterface
     {
         if ($fields['status'] === 'on') {
             $habitTime = new HabitTime;
+            $this->setModelConnection($habitTime);
             $habitTime->habit_id = $habitId;
             $habitTime->user_id = $userId;
             // Convert current user-local time to UTC
@@ -167,7 +170,8 @@ class TimeHabitHandler implements HabitTypeInterface
             return $habitTime->save();
         }
 
-        $habitTime = HabitTime::where('habit_id', $habitId)
+        $habitTime = HabitTime::on($this->getDatabaseConnection())
+            ->where('habit_id', $habitId)
             ->where('user_id', $userId)
             ->whereNotNull('start_time')
             ->whereNull('end_time')
@@ -219,6 +223,7 @@ class TimeHabitHandler implements HabitTypeInterface
         $end = Carbon::createFromFormat('Y-m-d H:i:s', $endDateTime, $timezone)->setTimezone('UTC');
 
         $habitTime = new HabitTime;
+        $this->setModelConnection($habitTime);
         $habitTime->habit_id = $habitId;
         $habitTime->user_id = $userId;
         $habitTime->start_time = $start;

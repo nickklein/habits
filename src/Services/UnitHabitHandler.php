@@ -6,9 +6,11 @@ use Carbon\Carbon;
 use NickKlein\Habits\Interfaces\HabitTypeInterface;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
+use NickKlein\Habits\Traits\EnvironmentAwareTrait;
 
 class UnitHabitHandler implements HabitTypeInterface
 {
+    use EnvironmentAwareTrait;
     
     /**
      * Constructor
@@ -146,6 +148,7 @@ class UnitHabitHandler implements HabitTypeInterface
     public function recordValue(int $habitId, int $userId, string $timezone = 'UTC', array $fields): bool
     {
         $habitTime = new HabitTime;
+        $this->setModelConnection($habitTime);
         $habitTime->habit_id = $habitId;
         $habitTime->user_id = $userId;
         $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
@@ -153,11 +156,12 @@ class UnitHabitHandler implements HabitTypeInterface
         $habitTime->duration = $fields['value'] ?? 1;
 
         return $habitTime->save();
-}
+    }
 
     public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', array $fields): bool
     {
-        $habitTime = HabitTime::where('id', $habitTimeId)
+        $habitTime = HabitTime::on($this->getDatabaseConnection())
+            ->where('id', $habitTimeId)
             ->where('user_id', $userId)
             ->first();
 
@@ -184,6 +188,7 @@ class UnitHabitHandler implements HabitTypeInterface
         $start = $end = Carbon::now($timezone)->timezone('UTC');
 
         $habitTime = new HabitTime;
+        $this->setModelConnection($habitTime);
         $habitTime->habit_id = $habitId;
         $habitTime->user_id = $userId;
         $habitTime->start_time = $start;
