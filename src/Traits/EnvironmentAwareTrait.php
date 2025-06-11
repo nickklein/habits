@@ -26,7 +26,8 @@ trait EnvironmentAwareTrait
      */
     private function getDatabaseConnection(): string
     {
-        return $this->isHomeEnvironment() ? 'cloud' : 'mysql';
+        /*return $this->isHomeEnvironment() ? 'cloud' : 'mysql';*/
+        return 'mysql';
     }
 
     /**
