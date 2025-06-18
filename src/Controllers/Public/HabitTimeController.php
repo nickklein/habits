@@ -2,7 +2,7 @@
 
 namespace NickKlein\Habits\Controllers\Public;
 
-use App\Models\User;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Routing\Controller;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
@@ -21,8 +21,9 @@ class HabitTimeController extends Controller
      */
     public function getDailyNotification(int $userId, HabitInsightService $habitInsightService)
     {
-        $user = User::find($userId);
-        $averageTime = $habitInsightService->generateDailyNotification($userId, $user->timezone);
+        $userModel = config('auth.providers.users.model');
+        $user = $userModel::find($userId);
+        $averageTime = $habitInsightService->generateDailyNotification($userId, $user->timezone ?? 'UTC');
 
         return response()->json([
             'notification' => $averageTime,
@@ -38,8 +39,9 @@ class HabitTimeController extends Controller
      */
     public function getWeeklyNotifications(int $userId, HabitInsightService $habitInsightService)
     {
-        $user = User::find($userId);
-        $averageTime = $habitInsightService->generateWeeklyNotifications($userId, $user->timezone);
+        $userModel = config('auth.providers.users.model');
+        $user = $userModel::find($userId);
+        $averageTime = $habitInsightService->generateWeeklyNotifications($userId, $user->timezone ?? 'UTC');
 
         return response()->json([
             'notification' => $averageTime,
@@ -55,8 +57,9 @@ class HabitTimeController extends Controller
      */
     public function startOrEndTimer(int $userId, int $habitTimeId, string $status, HabitService $habitService)
     {
-        $user = User::find($userId);
-        $response = $habitService->startOrEndTimer($habitTimeId, $userId, $user->timezone, $status);
+        $userModel = config('auth.providers.users.model');
+        $user = $userModel::find($userId);
+        $response = $habitService->startOrEndTimer($habitTimeId, $userId, $user->timezone ?? 'UTC', $status);
         if ($response) {
             return response()->json([
                 'status' => 'success',
@@ -83,8 +86,9 @@ class HabitTimeController extends Controller
      */
     public function store(int $userId, int $habitTimeId, string $value, HabitService $habitService )
     {
-        $user = User::find($userId);
-        $response = $habitService->saveHabitTransaction($habitTimeId, $userId, $user->timezone, $value);
+        $userModel = config('auth.providers.users.model');
+        $user = $userModel::find($userId);
+        $response = $habitService->saveHabitTransaction($habitTimeId, $userId, $user->timezone ?? 'UTC', $value);
 
         if ($response) {
             return response()->json([
@@ -96,7 +100,7 @@ class HabitTimeController extends Controller
         return response()->json([
             'status' => 'error',
             'message' => 'Habit not added',
-        ]);
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
     }
 
     /**
@@ -107,9 +111,10 @@ class HabitTimeController extends Controller
      */
     public function endTimers(int $userId, HabitInsightRepository $habitInsightRepository)
     {
-        $user = User::find($userId);
+        $userModel = config('auth.providers.users.model');
+        $user = $userModel::find($userId);
         $habitIds = request()->has('ids') ? explode(',', request()->get('ids')) : [];
-        $habitInsightRepository->endAllActiveHabits($userId, $user->timezone, $habitIds);
+        $habitInsightRepository->endAllActiveHabits($userId, $user->timezone ?? 'UTC', $habitIds);
 
         return response()->json([
             'status' => 'success',
