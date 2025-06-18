@@ -243,65 +243,153 @@ class HabitInsightServiceTest extends TestCase
     {
         // Set up mocked dependencies and method parameters
         $habitUser = HabitUser::find(1);
-
-        // Mock HabitService
+        $habitUser->habit_type = 'time'; // Ensure we have a valid habit type for the handler
+        
+        $thisMonthValue = 72000; // 20 hours in seconds  
+        $lastMonthValue = 5400; // 1.5 hours in seconds
+        
+        // Mock HabitService (still needed as a parameter)
         $mockHabitService = Mockery::mock(HabitService::class);
         $this->app->instance(HabitService::class, $mockHabitService);
-        $mockHabitService->shouldReceive('convertSecondsToMinutesOrHoursV2')
-            ->andReturn(
-                ['value' => 20000, 'unit' => 'hrs', 'unit_full' => 'hours'],
-                ['value' => 90, 'unit' => 'min', 'unit_full' => 'minutes']
-            );
 
         // Mock HabitInsightRepository
-        $habitInsightRepository = Mockery::mock(HabitInsightRepository::class);
-        $this->app->instance(HabitInsightRepository::class, $habitInsightRepository);
-        $habitInsightRepository->shouldReceive('getAveragesByHabitId')
-            ->andReturn(300, 200);
+        $mockHabitInsightRepository = Mockery::mock(HabitInsightRepository::class);
+        $this->app->instance(HabitInsightRepository::class, $mockHabitInsightRepository);
+        
+        // Mock TimeHabitHandler via the factory
+        $mockTimeHabitHandler = Mockery::mock(TimeHabitHandler::class);
+        $mockHabitTypeFactory = Mockery::mock(HabitTypeFactory::class);
+        $this->app->instance(HabitTypeFactory::class, $mockHabitTypeFactory);
+        
+        // Set up expected repository calls
+        $mockHabitInsightRepository->shouldReceive('getAveragesByHabitId')
+            ->twice()
+            ->andReturn($thisMonthValue, $lastMonthValue);
+        
+        // Set up expected TimeHabitHandler calls via factory
+        $mockHabitTypeFactory->shouldReceive('getHandler')
+            ->with('time')
+            ->andReturn($mockTimeHabitHandler);
+            
+        $mockTimeHabitHandler->shouldReceive('formatValue')
+            ->with($thisMonthValue)
+            ->once()
+            ->andReturn([
+                'value' => 20.0,
+                'unit' => 'hrs',
+                'unit_full' => 'hours'
+            ]);
+            
+        $mockTimeHabitHandler->shouldReceive('formatValue')
+            ->with($lastMonthValue)
+            ->once()
+            ->andReturn([
+                'value' => 1.5,
+                'unit' => 'hrs', 
+                'unit_full' => 'hours'
+            ]);
+            
+        $mockTimeHabitHandler->shouldReceive('calculatePercentageDifference')
+            ->with($thisMonthValue, $lastMonthValue)
+            ->once()
+            ->andReturn([100, 7]);
+            
+        $mockTimeHabitHandler->shouldReceive('formatDifference')
+            ->with($lastMonthValue, $thisMonthValue)
+            ->once()
+            ->andReturn(18.5);
+            
+        $mockTimeHabitHandler->shouldReceive('getUnitLabelFull')
+            ->once()
+            ->andReturn('hours');
 
         // Instantiate the service to test with mocked dependencies
         $habitInsightService = $this->app->make(HabitInsightService::class);
 
         // Call the method to test
-        $result = $habitInsightService->getMonthlyAverageHighlights($habitUser, 'UTC', $mockHabitService, $habitInsightRepository);
+        $result = $habitInsightService->getMonthlyAverageHighlights($habitUser, 'UTC', $mockHabitService, $mockHabitInsightRepository);
 
         // Define your assertions
-        $this->assertEquals(20000, $result['barOne']['number']);
-        $this->assertEquals(90, $result['barTwo']['number']);
+        $this->assertEquals(20.0, $result['barOne']['number']);
+        $this->assertEquals(1.5, $result['barTwo']['number']);
         $this->assertEquals('hours / day', $result['barOne']['unit']);
-        $this->assertEquals('minutes / day', $result['barTwo']['unit']);
+        $this->assertEquals('hours / day', $result['barTwo']['unit']);
     }
 
     public function testGetYearlySummaryHighlights()
     {
         // Set up mocked dependencies and method parameters
         $habitUser = HabitUser::find(1);
-
-        // Mock HabitService
+        $habitUser->habit_type = 'time'; // Ensure we have a valid habit type for the handler
+        
+        $thisYearValue = 72000; // 20 hours in seconds  
+        $lastYearValue = 5400; // 1.5 hours in seconds
+        
+        // Mock HabitService (still needed as a parameter)
         $mockHabitService = Mockery::mock(HabitService::class);
         $this->app->instance(HabitService::class, $mockHabitService);
-        $mockHabitService->shouldReceive('convertSecondsToMinutesOrHoursV2')
-            ->andReturn(
-                ['value' => 20000, 'unit' => 'hrs', 'unit_full' => 'hours'],
-                ['value' => 90, 'unit' => 'min', 'unit_full' => 'minutes']
-            );
 
         // Mock HabitInsightRepository
-        $habitInsightRepository = Mockery::mock(HabitInsightRepository::class);
-        $this->app->instance(HabitInsightRepository::class, $habitInsightRepository);
-        $habitInsightRepository->shouldReceive('getSummationByHabitId')
-            ->andReturn(300, 200);
+        $mockHabitInsightRepository = Mockery::mock(HabitInsightRepository::class);
+        $this->app->instance(HabitInsightRepository::class, $mockHabitInsightRepository);
+        
+        // Mock TimeHabitHandler via the factory
+        $mockTimeHabitHandler = Mockery::mock(TimeHabitHandler::class);
+        $mockHabitTypeFactory = Mockery::mock(HabitTypeFactory::class);
+        $this->app->instance(HabitTypeFactory::class, $mockHabitTypeFactory);
+        
+        // Set up expected repository calls
+        $mockHabitInsightRepository->shouldReceive('getSummationByHabitId')
+            ->twice()
+            ->andReturn($thisYearValue, $lastYearValue);
+        
+        // Set up expected TimeHabitHandler calls via factory
+        $mockHabitTypeFactory->shouldReceive('getHandler')
+            ->with('time')
+            ->andReturn($mockTimeHabitHandler);
+            
+        $mockTimeHabitHandler->shouldReceive('formatValue')
+            ->with($thisYearValue)
+            ->once()
+            ->andReturn([
+                'value' => 20.0,
+                'unit' => 'hrs',
+                'unit_full' => 'hours'
+            ]);
+            
+        $mockTimeHabitHandler->shouldReceive('formatValue')
+            ->with($lastYearValue)
+            ->once()
+            ->andReturn([
+                'value' => 1.5,
+                'unit' => 'hrs', 
+                'unit_full' => 'hours'
+            ]);
+            
+        $mockTimeHabitHandler->shouldReceive('calculatePercentageDifference')
+            ->with($thisYearValue, $lastYearValue)
+            ->once()
+            ->andReturn([100, 7]);
+            
+        $mockTimeHabitHandler->shouldReceive('formatDifference')
+            ->with($lastYearValue, $thisYearValue)
+            ->once()
+            ->andReturn(18.5);
+            
+        $mockTimeHabitHandler->shouldReceive('getUnitLabelFull')
+            ->once()
+            ->andReturn('hours');
 
         // Instantiate the service to test with mocked dependencies
         $habitInsightService = $this->app->make(HabitInsightService::class);
 
         // Call the method to test
-        $result = $habitInsightService->getYearlySummaryHighlights($habitUser, 'UTC', $mockHabitService, $habitInsightRepository);
+        $result = $habitInsightService->getYearlySummaryHighlights($habitUser, 'UTC', $mockHabitService, $mockHabitInsightRepository);
 
         // Define your assertions
-        $this->assertEquals(20000, $result['barOne']['number']);
-        $this->assertEquals(90, $result['barTwo']['number']);
+        $this->assertEquals(20.0, $result['barOne']['number']);
+        $this->assertEquals(1.5, $result['barTwo']['number']);
         $this->assertEquals('hours', $result['barOne']['unit']);
-        $this->assertEquals('minutes', $result['barTwo']['unit']);
+        $this->assertEquals('hours', $result['barTwo']['unit']);
     }
 }

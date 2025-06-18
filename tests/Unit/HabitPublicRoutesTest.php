@@ -23,7 +23,7 @@ class HabitPublicRoutesTest extends TestCase
         $mockService = Mockery::mock(HabitInsightService::class);
         $mockService->shouldReceive('generateDailyNotification')
             ->once()
-            ->with($user->id)
+            ->with($user->id, $user->timezone ?? 'UTC')
             ->andReturn('Habit1: 10, Habit2: 20, ');
 
         // Act: Call the getDailyNotification method on the controller
@@ -45,7 +45,7 @@ class HabitPublicRoutesTest extends TestCase
         $mockService = Mockery::mock(HabitInsightService::class);
         $mockService->shouldReceive('generateWeeklyNotifications')
             ->once()
-            ->with($user->id)
+            ->with($user->id, $user->timezone ?? 'UTC')
             ->andReturn('Habit1: 10 (5%), Habit2: 20 (10%), ');
 
         // App::instance method binds the mock into the service container
@@ -67,19 +67,23 @@ class HabitPublicRoutesTest extends TestCase
         // Arrange: Create a user
         $user = User::find(1);
 
-        // Create a habit
-        $habitTime = HabitTime::where('user_id', $user->id)->first();
+        // Create a habit time record
+        $habitTime = HabitTime::create([
+            'user_id' => $user->id,
+            'habit_id' => 1,
+            'start_time' => now(),
+            'end_time' => null,
+        ]);
 
-        // Arrange: Mock HabitInsightService
-        $mockService = Mockery::mock(HabitInsightService::class);
-        $mockService->shouldReceive('manageHabitTime')
+        // Arrange: Mock HabitService
+        $mockService = Mockery::mock(HabitService::class);
+        $mockService->shouldReceive('saveHabitTransaction')
             ->once()
-            ->with($habitTime->id, $user->id, $user->timezone, 'on')
+            ->with($habitTime->id, $user->id, $user->timezone ?? 'UTC', 'on')
             ->andReturn(true);
 
         // App::instance method binds the mock into the service container
-        // So when Laravel tries to resolve HabitService class, it gets the mock instance instead
-        $this->app->instance(HabitInsightService::class, $mockService);
+        $this->app->instance(HabitService::class, $mockService);
 
         // Act: Call the store method on the controller
         $controller = new HabitTimeController;
@@ -88,7 +92,7 @@ class HabitPublicRoutesTest extends TestCase
         // Assert: Check the response
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertEquals(Response::HTTP_OK, $response->status());
-        $this->assertEquals('Habit time added successfully', $response->getData()->message);
+        $this->assertEquals('Habit added.', $response->getData()->message);
     }
 
     public function testStoreHabitTimeFail()
@@ -96,19 +100,23 @@ class HabitPublicRoutesTest extends TestCase
         // Arrange: Create a user
         $user = User::find(1);
 
-        // Create a habit
-        $habitTime = HabitTime::where('user_id', $user->id)->first();
+        // Create a habit time record
+        $habitTime = HabitTime::create([
+            'user_id' => $user->id,
+            'habit_id' => 1,
+            'start_time' => now(),
+            'end_time' => null,
+        ]);
 
         // Arrange: Mock HabitService
-        $mockService = Mockery::mock(HabitInsightService::class);
-        $mockService->shouldReceive('manageHabitTime')
+        $mockService = Mockery::mock(HabitService::class);
+        $mockService->shouldReceive('saveHabitTransaction')
             ->once()
-            ->with($habitTime->id, $user->id, $user->timezone, 'on')
+            ->with($habitTime->id, $user->id, $user->timezone ?? 'UTC', 'on')
             ->andReturn(false);
 
         // App::instance method binds the mock into the service container
-        // So when Laravel tries to resolve HabitService class, it gets the mock instance instead
-        $this->app->instance(HabitInsightService::class, $mockService);
+        $this->app->instance(HabitService::class, $mockService);
 
         // Act: Call the store method on the controller
         $controller = new HabitTimeController;
@@ -117,6 +125,6 @@ class HabitPublicRoutesTest extends TestCase
         // Assert: Check the response
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertEquals(Response::HTTP_INTERNAL_SERVER_ERROR, $response->status());
-        $this->assertEquals('Habit time not added', $response->getData()->message);
+        $this->assertEquals('Habit not added', $response->getData()->message);
     }
 }
