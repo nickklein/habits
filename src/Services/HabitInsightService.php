@@ -86,6 +86,47 @@ class HabitInsightService
         return $summaries;
     }
 
+    /**
+     * Get single habit user summary for AJAX calls
+     *
+     * @param HabitUser $habitUser
+     * @param string $timezone
+     * @param HabitService $service
+     * @param HabitInsightRepository $insightRepository
+     * @param string|null $selectedDate (Y-m-d format, defaults to today)
+     * @return array
+     */
+    public function getSingleHabitSummary(HabitUser $habitUser, string $timezone, HabitService $service, HabitInsightRepository $insightRepository, string $selectedDate = null): array
+    {
+        $date = $selectedDate 
+            ? Carbon::createFromFormat('Y-m-d', $selectedDate, $timezone)
+            : Carbon::today($timezone);
+            
+        $dateRanges = [
+            self::GOAL_PERIOD_DAILY => [
+                'start' => $date->copy()->startOfDay()->setTimezone('UTC'),
+                'end' => $date->copy()->endOfDay()->setTimezone('UTC'),
+            ],
+            self::GOAL_PERIOD_WEEKLY => [
+                'start' => $date->copy()->startOfWeek()->setTimezone('UTC'),
+                'end' => $date->copy()->endOfWeek()->setTimezone('UTC'),
+            ]
+        ];
+
+        $color = $habitUser->color_index ?? '#ffffff';
+        $summary = $this->generateDailySummariesForUser($habitUser, $habitUser->user_id, $timezone, $dateRanges, $color, $service, $insightRepository);
+
+        // Handle children if they exist
+        if ($habitUser->children && $habitUser->children->count() > 0) {
+            $summary['children'] = [];
+            foreach ($habitUser->children as $child) {
+                $summary['children'][] = $this->generateDailySummariesForUser($child, $habitUser->user_id, $timezone, $dateRanges, $color, $service, $insightRepository);
+            }
+        }
+
+        return $summary;
+    }
+
 
     public function generateDailySummariesForUser(HabitUser $habitUser, int $userId, string $timezone, array $dateRanges, string $color, HabitService $service, HabitInsightRepository $insightRepository)
     {

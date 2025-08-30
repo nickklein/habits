@@ -29,7 +29,9 @@ export default function DailyCalendar({ onDateSelect, selectedDate = null }) {
     const handleDateClick = (date) => {
         setCurrentDate(date);
         if (onDateSelect) {
-            onDateSelect(date);
+            // Format date as YYYY-MM-DD for the API
+            const formattedDate = date.toISOString().split('T')[0];
+            onDateSelect(formattedDate);
         }
     };
 
