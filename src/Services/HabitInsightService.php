@@ -72,7 +72,7 @@ class HabitInsightService
         $group = 0;
         $summaries = [];
         foreach ($habitsUser as $key => $habit) {
-            $color = self::HABIT_COLOR_INDEX[$habit->habit_id];
+            $color = $habit->color_index ?? 'black';
             // Some habits have children, so we need to loop through them as well
             $summaries[$group] = $this->generateDailySummariesForUser($habit, $userId, $timezone, $dateRanges, $color, $service, $insightRepository);
             if ($habit->children) {

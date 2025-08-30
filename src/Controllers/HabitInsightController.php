@@ -14,6 +14,7 @@ class HabitInsightController extends Controller
 {
     /**
      * Habit homepage
+     * TODO: Should return all the habit_user.ids
      *
      * @param HabitInsightService $habitInsightService
      * @return Inertia
@@ -35,6 +36,14 @@ class HabitInsightController extends Controller
         ]);
     }
 
+    // TODO: Add Forms Request
+    public function getDailySummaries(Request $request)
+    {
+        // $request->habit_user_id, which is habit_user.id
+        // Returns getDailySummaryForHabitUserId
+
+    }
+
     /**
      * Show habit insights
      *
@@ -50,7 +59,7 @@ class HabitInsightController extends Controller
 
         return Inertia::render('Habits/ShowInsights', [
             'habit' => $habitsUser,
-            'color' => HabitInsightService::HABIT_COLOR_INDEX[$habitsUser->parent->habit_id ?? $habitsUser->habit_id],
+            'color' => $habitsUser->color_index ?? '#ffffff',
             'streaks' => $habitInsightService->getStreaks($habitsUser, Auth::user()->id, Auth::user()->timezone, $habitId, $habitInsightRepository),
             'dailySummaryHighlights' => $habitInsightService->getDailySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
             'weeklyAveragesHighlights' => $habitInsightService->getWeeklyAverageHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
