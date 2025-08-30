@@ -72,7 +72,7 @@ class HabitInsightService
         $group = 0;
         $summaries = [];
         foreach ($habitsUser as $key => $habit) {
-            $color = self::HABIT_COLOR_INDEX[$habit->habit_id];
+            $color = $habit->color_index ?? 'black';
             // Some habits have children, so we need to loop through them as well
             $summaries[$group] = $this->generateDailySummariesForUser($habit, $userId, $timezone, $dateRanges, $color, $service, $insightRepository);
             if ($habit->children) {
@@ -84,6 +84,47 @@ class HabitInsightService
         }
 
         return $summaries;
+    }
+
+    /**
+     * Get single habit user summary for AJAX calls
+     *
+     * @param HabitUser $habitUser
+     * @param string $timezone
+     * @param HabitService $service
+     * @param HabitInsightRepository $insightRepository
+     * @param string|null $selectedDate (Y-m-d format, defaults to today)
+     * @return array
+     */
+    public function getSingleHabitSummary(HabitUser $habitUser, string $timezone, HabitService $service, HabitInsightRepository $insightRepository, string $selectedDate = null): array
+    {
+        $date = $selectedDate 
+            ? Carbon::createFromFormat('Y-m-d', $selectedDate, $timezone)
+            : Carbon::today($timezone);
+            
+        $dateRanges = [
+            self::GOAL_PERIOD_DAILY => [
+                'start' => $date->copy()->startOfDay()->setTimezone('UTC'),
+                'end' => $date->copy()->endOfDay()->setTimezone('UTC'),
+            ],
+            self::GOAL_PERIOD_WEEKLY => [
+                'start' => $date->copy()->startOfWeek()->setTimezone('UTC'),
+                'end' => $date->copy()->endOfWeek()->setTimezone('UTC'),
+            ]
+        ];
+
+        $color = $habitUser->color_index ?? '#ffffff';
+        $summary = $this->generateDailySummariesForUser($habitUser, $habitUser->user_id, $timezone, $dateRanges, $color, $service, $insightRepository);
+
+        // Handle children if they exist
+        if ($habitUser->children && $habitUser->children->count() > 0) {
+            $summary['children'] = [];
+            foreach ($habitUser->children as $child) {
+                $summary['children'][] = $this->generateDailySummariesForUser($child, $habitUser->user_id, $timezone, $dateRanges, $color, $service, $insightRepository);
+            }
+        }
+
+        return $summary;
     }
 
 

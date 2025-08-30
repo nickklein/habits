@@ -7,6 +7,9 @@ use NickKlein\Habits\Controllers\HabitTimeController;
 Route::middleware(['web', 'auth'])->group(function() {
     Route::get('/habit', [HabitInsightController::class, 'index'])->name('habits.index');
     Route::get('/habit/show/{habitId}', [HabitInsightController::class, 'show'])->name('habits.show');
+    
+    // API endpoints for AJAX calls
+    Route::get('/api/habits/{habitUserId}/summary', [HabitInsightController::class, 'getHabitUserSummary'])->name('habits.api.summary');
 
     // Add/Edit/Delete Transactions
     Route::get('/habit/transactions', [HabitTimeController::class, 'transactions'])->name('habits.transactions');
