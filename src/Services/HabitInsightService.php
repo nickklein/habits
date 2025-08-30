@@ -146,7 +146,8 @@ class HabitInsightService
                 'unit' => $currentValue['unit'],
             ],
             'goal' => $goalValue,
-            'color' => $color,
+            'color_index' => $color,
+            'goal_met' => $time > $habitUser->streak_goal,
         ];
     }
 

@@ -73,44 +73,48 @@ export default function HabitTile({ habitUserId, selectedDate }) {
 
     return (
         <>
-            <Card className="flex justify-between">
-                <div>
-                    <h3 className="text-xl font-semibold" style={{ color: textColor }}>
-                        <Link href={route('habits.show', habitData.id)}>{habitData.name}</Link>
-                    </h3>
-                    <div className="text-4xl font-bold text-white">
-                        {habitData.current.total} <span className="text-gray-400 text-sm mr-3">{habitData.current.unit}</span> 
-                        {habitData.goal.total && (
-                            <>
-                                / {habitData.goal.total} <span className="text-gray-400 text-sm">{habitData.goal.unit} {habitData.goal.type}</span>
-                            </>
-                        )}
+            { !habitData.goal_met && (
+                <Card className="flex justify-between">
+                    <div>
+                        <h3 className="text-xl font-semibold" style={{ color: textColor }}>
+                            <Link href={route('habits.show', habitData.id)}>{habitData.name}</Link>
+                        </h3>
+                        <div className="text-4xl font-bold text-white">
+                            {habitData.current.total} <span className="text-gray-400 text-sm mr-3">{habitData.current.unit}</span> 
+                            {habitData.goal.total && (
+                                <>
+                                    / {habitData.goal.total} <span className="text-gray-400 text-sm">{habitData.goal.unit} {habitData.goal.type}</span>
+                                </>
+                            )}
+                        </div>
                     </div>
-                </div>
-                {habitData.children && habitData.children.length > 0 && (
-                    <button 
-                        onClick={toggleChildren}
-                        className="text-white mr-4 inline-flex items-center hover:text-gray-300 transition-colors"
-                    >
-                        {childrenOpen ? <FaChevronDown size={22} /> : <FaChevronRight size={22} />}
-                    </button>
-                )}
-            </Card>
+                    {habitData.children && habitData.children.length > 0 && (
+                        <button 
+                            onClick={toggleChildren}
+                            className="text-white mr-4 inline-flex items-center hover:text-gray-300 transition-colors"
+                        >
+                            {childrenOpen ? <FaChevronDown size={22} /> : <FaChevronRight size={22} />}
+                        </button>
+                    )}
+                </Card>
+            )}
             
             {childrenOpen && habitData.children && habitData.children.map((child, index) => (
-                <Card key={index} className="ml-5">
-                    <h3 className="text-xl font-semibold" style={{ color: textColor }}>
-                        <Link href={route('habits.show', child.id)}>{child.name}</Link>
-                    </h3>
-                    <div className="text-4xl font-bold text-white">
-                        {child.current.total} <span className="text-gray-400 text-sm mr-3">{child.current.unit}</span>
-                        {child.goal.total && (
-                            <>
-                                / {child.goal.total} <span className="text-gray-400 text-sm">{child.goal.unit} {child.goal.type}</span>
-                            </>
-                        )}
-                    </div>
-                </Card>
+                !child.goal_met && (
+                    <Card key={index} className="ml-5">
+                        <h3 className="text-xl font-semibold" style={{ color: textColor }}>
+                            <Link href={route('habits.show', child.id)}>{child.name}</Link>
+                        </h3>
+                        <div className="text-4xl font-bold text-white">
+                            {child.current.total} <span className="text-gray-400 text-sm mr-3">{child.current.unit}</span>
+                            {child.goal.total && (
+                                <>
+                                    / {child.goal.total} <span className="text-gray-400 text-sm">{child.goal.unit} {child.goal.type}</span>
+                                </>
+                            )}
+                        </div>
+                    </Card>
+                )
             ))}
         </>
     );

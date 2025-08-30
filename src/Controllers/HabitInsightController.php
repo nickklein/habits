@@ -86,13 +86,6 @@ class HabitInsightController extends Controller
 
         $summary = $habitInsightService->getSingleHabitSummary($habitUser, Auth::user()->timezone, $habitService, $habitInsightRepository, $selectedDate);
 
-        return response()->json([
-            'id' => $habitUser->id,
-            'name' => $habitUser->habit->name,
-            'color_index' => $habitUser->color_index ?? '#ffffff',
-            'current' => $summary['current'],
-            'goal' => $summary['goal'],
-            'children' => $summary['children'] ?? null
-        ]);
+        return response()->json($summary);
     }
 }
