@@ -99,7 +99,7 @@ class HabitInsightService
     public function getSingleHabitSummary(HabitUser $habitUser, string $timezone, HabitService $service, HabitInsightRepository $insightRepository, string $selectedDate = null): array
     {
         $date = $selectedDate 
-            ? Carbon::createFromFormat('Y-m-d', $selectedDate, $timezone)
+            ? Carbon::createFromFormat('Y-m-d', $selectedDate, $timezone)->startOfDay()
             : Carbon::today($timezone);
             
         $dateRanges = [

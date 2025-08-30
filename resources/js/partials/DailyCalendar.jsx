@@ -7,7 +7,7 @@ export default function DailyCalendar({ onDateSelect, selectedDate = null }) {
     const [weekOffset, setWeekOffset] = useState(0);
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
-    console.log(currentDate);
+    // console.log(currentDate);
 
     useEffect(() => {
         generateDays();
@@ -29,8 +29,8 @@ export default function DailyCalendar({ onDateSelect, selectedDate = null }) {
     const handleDateClick = (date) => {
         setCurrentDate(date);
         if (onDateSelect) {
-            // Format date as YYYY-MM-DD for the API
-            const formattedDate = date.toISOString().split('T')[0];
+            // Format date as YYYY-MM-DD using local timezone
+            const formattedDate = date.toLocaleDateString('en-CA'); // 'en-CA' gives YYYY-MM-DD format
             onDateSelect(formattedDate);
         }
     };
