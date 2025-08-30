@@ -7,7 +7,6 @@ export default function DailyCalendar({ onDateSelect, selectedDate = null }) {
     const [weekOffset, setWeekOffset] = useState(0);
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
-    // console.log(currentDate);
 
     useEffect(() => {
         generateDays();

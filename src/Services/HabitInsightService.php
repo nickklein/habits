@@ -109,7 +109,7 @@ class HabitInsightService
             ],
             self::GOAL_PERIOD_WEEKLY => [
                 'start' => $date->copy()->startOfWeek()->setTimezone('UTC'),
-                'end' => $date->copy()->endOfWeek()->setTimezone('UTC'),
+                'end' => $date->copy()->endOfDay()->setTimezone('UTC'),
             ]
         ];
 
