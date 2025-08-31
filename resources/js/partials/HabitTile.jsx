@@ -44,14 +44,16 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
         setChildrenOpen(!childrenOpen);
     };
 
+    // TODO: Code smell. All this logic needs to go up a level
     const fetchRoute = () => {
+
         if (type === INSIGHT_TYPE) {
             return route('api.habits.insights.summary', habitUserId)
         }
-
+        const baseUrl = route('api.habits.summary', habitUserId);
         return selectedDate 
-            ? route('api.habits.summary', habitUserId, { date: selectedDate })
-            : route('api.habits.summary', habitUserId);
+            ? `${baseUrl}?date=${selectedDate}`
+            : baseUrl;
     };
 
     if (loading) {
