@@ -140,6 +140,7 @@ class HabitInsightService
         return [
             'id' => $habitUser->habit_id,
             'name' => $habitUser->habit->name,
+            'icon' => $habitUser->icon,
             'current' => [
                 'total' => $currentValue['value'],
                 'unit' => $currentValue['unit'],

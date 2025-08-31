@@ -89,7 +89,7 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
                 <Card className="flex justify-between">
                     <div>
                         <h3 className="text-xl font-semibold" style={{ color: textColor }}>
-                            <Link href={route('habits.show', habitData.id)}>{habitData.name}</Link>
+                            <Link href={route('habits.show', habitData.id)}>{habitData.icon} {habitData.name}</Link>
                         </h3>
                         <div className="text-4xl font-bold text-white">
                             {habitData.current.total} <span className="text-gray-400 text-sm mr-3">{habitData.current.unit}</span> 
@@ -115,7 +115,7 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
                 (type === INSIGHT_TYPE || !child.goal_met) && (
                     <Card key={index} className="ml-5">
                         <h3 className="text-xl font-semibold" style={{ color: textColor }}>
-                            <Link href={route('habits.show', child.id)}>{child.name}</Link>
+                            <Link href={route('habits.show', child.id)}>{child.icon} {child.name}</Link>
                         </h3>
                         <div className="text-4xl font-bold text-white">
                             {child.current.total} <span className="text-gray-400 text-sm mr-3">{child.current.unit}</span>
