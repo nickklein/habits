@@ -5,7 +5,9 @@ import Card from './Card';
 import SkeletonTile from './SkeletonTile';
 import { getTextColor } from '@/Helpers/Colors';
 
-export default function HabitTile({ habitUserId, selectedDate }) {
+const INSIGHT_TYPE = 'insights';
+
+export default function HabitTile({ habitUserId, selectedDate, type }) {
     const [habitData, setHabitData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -20,9 +22,7 @@ export default function HabitTile({ habitUserId, selectedDate }) {
             setLoading(true);
             setError(null);
             
-            const url = selectedDate 
-                ? `/api/habits/${habitUserId}/summary?date=${selectedDate}`
-                : `/api/habits/${habitUserId}/summary`;
+            const url = fetchRoute();
             
             const response = await fetch(url);
             
@@ -42,6 +42,16 @@ export default function HabitTile({ habitUserId, selectedDate }) {
     const toggleChildren = (e) => {
         e.preventDefault();
         setChildrenOpen(!childrenOpen);
+    };
+
+    const fetchRoute = () => {
+        if (type === INSIGHT_TYPE) {
+            return route('api.habits.insights.summary', habitUserId)
+        }
+
+        return selectedDate 
+            ? route('api.habits.summary', habitUserId, { date: selectedDate })
+            : route('api.habits.summary', habitUserId);
     };
 
     if (loading) {
@@ -73,7 +83,7 @@ export default function HabitTile({ habitUserId, selectedDate }) {
 
     return (
         <>
-            { !habitData.goal_met && (
+            { (type === INSIGHT_TYPE || !habitData.goal_met) && (
                 <Card className="flex justify-between">
                     <div>
                         <h3 className="text-xl font-semibold" style={{ color: textColor }}>
@@ -100,7 +110,7 @@ export default function HabitTile({ habitUserId, selectedDate }) {
             )}
             
             {childrenOpen && habitData.children && habitData.children.map((child, index) => (
-                !child.goal_met && (
+                (type === INSIGHT_TYPE || !child.goal_met) && (
                     <Card key={index} className="ml-5">
                         <h3 className="text-xl font-semibold" style={{ color: textColor }}>
                             <Link href={route('habits.show', child.id)}>{child.name}</Link>

@@ -3,13 +3,20 @@
 use Illuminate\Support\Facades\Route;
 use NickKlein\Habits\Controllers\HabitInsightController;
 use NickKlein\Habits\Controllers\HabitTimeController;
+use NickKlein\Habits\Controllers\HabitController;
 
 Route::middleware(['web', 'auth'])->group(function() {
-    Route::get('/habit', [HabitInsightController::class, 'index'])->name('habits.index');
+    Route::get('/habit', [HabitController::class, 'index'])->name('habits.index');
+    Route::get('/api/habits/{habitUserId}/summary', [HabitController::class, 'getHabitUserSummary'])->name('api.habits.summary');
+    Route::get('/habit/insights', [HabitInsightController::class, 'index'])->name('habits.insights');
+    Route::get('/api/habits/insights/{habitUserId}/summary', [HabitInsightController::class, 'getHabitUserSummary'])->name('api.habits.insights.summary');
     Route::get('/habit/show/{habitId}', [HabitInsightController::class, 'show'])->name('habits.show');
     
+    // Create new habits
+    Route::get('/habit/create', [HabitController::class, 'create'])->name('habits.create');
+    Route::post('/habit/store', [HabitController::class, 'store'])->name('habits.store');
+    
     // API endpoints for AJAX calls
-    Route::get('/api/habits/{habitUserId}/summary', [HabitInsightController::class, 'getHabitUserSummary'])->name('habits.api.summary');
 
     // Add/Edit/Delete Transactions
     Route::get('/habit/transactions', [HabitTimeController::class, 'transactions'])->name('habits.transactions');

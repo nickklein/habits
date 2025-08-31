@@ -4,10 +4,13 @@ namespace NickKlein\Habits\Services;
 
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
+use NickKlein\Habits\Models\Habit;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection as SupportCollection;
+use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Traits\EnvironmentAwareTrait;
+use NickKlein\Habits\Enums\GoalPeriodEnum;
 
 class HabitService
 {
@@ -18,6 +21,47 @@ class HabitService
     public function __construct(private HabitTypeFactory $habitTypeFactory)
     {
         //
+    }
+
+    /**
+     * Get single habit user summary homepage AJAX calls
+     *
+     * @param HabitUser $habitUser
+     * @param string $timezone
+     * @param HabitService $service
+     * @param HabitInsightRepository $insightRepository
+     * @param string|null $selectedDate (Y-m-d format, defaults to today)
+     * @return array
+     */
+    public function getSingleHabitSummary(HabitUser $habitUser, string $timezone, HabitService $service, HabitInsightRepository $insightRepository, string $selectedDate = null): array
+    {
+        $date = $selectedDate 
+            ? Carbon::createFromFormat('Y-m-d', $selectedDate, $timezone)->startOfDay()
+            : Carbon::today($timezone);
+            
+        $dateRanges = [
+            GoalPeriodEnum::DAILY->value => [
+                'start' => $date->copy()->startOfDay()->setTimezone('UTC'),
+                'end' => $date->copy()->endOfDay()->setTimezone('UTC'),
+            ],
+            GoalPeriodEnum::WEEKLY->value => [
+                'start' => $date->copy()->startOfWeek()->setTimezone('UTC'),
+                'end' => $date->copy()->endOfDay()->setTimezone('UTC'),
+            ]
+        ];
+
+        $color = $habitUser->color_index ?? '#ffffff';
+        $summary = $this->generateDailySummariesForUser($habitUser, $habitUser->user_id, $timezone, $dateRanges, $color, $service, $insightRepository);
+
+        // Handle children if they exist
+        if ($habitUser->children && $habitUser->children->count() > 0) {
+            $summary['children'] = [];
+            foreach ($habitUser->children as $child) {
+                $summary['children'][] = $this->generateDailySummariesForUser($child, $habitUser->user_id, $timezone, $dateRanges, $color, $service, $insightRepository);
+            }
+        }
+
+        return $summary;
     }
 
     public function getTransactions(int $userId, string $timezone = 'UTC'): LengthAwarePaginator
@@ -251,5 +295,36 @@ class HabitService
     {
         return HabitTime::where('id', $lastTransactionId)
             ->get();
+    }
+
+    /**
+     * Create a new habit with habit_user relationship
+     *
+     * @param integer $userId
+     * @param array $fields
+     * @return boolean
+     */
+    public function createHabit(int $userId, array $fields): bool
+    {
+        // First create the habit
+        $habit = new Habit();
+        $habit->name = $fields['name'];
+        $habit->created_at = now();
+        $habit->updated_at = now();
+        
+        if (!$habit->save()) {
+            return false;
+        }
+
+        // Then create the habit_user relationship
+        $habitUser = new HabitUser();
+        $habitUser->user_id = $userId;
+        $habitUser->habit_id = $habit->habit_id;
+        $habitUser->color_index = $fields['color_index'];
+        $habitUser->streak_time_goal = $fields['streak_goal'];
+        $habitUser->streak_time_type = $fields['streak_time_type'];
+        $habitUser->habit_type = $fields['habit_type'];
+        
+        return $habitUser->save();
     }
 }

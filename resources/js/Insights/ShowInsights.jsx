@@ -1,9 +1,9 @@
 import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
-import TwoHorizontalBarChart from './partials/TwoHorizontalBarChart';
+import TwoHorizontalBarChart from '../partials/TwoHorizontalBarChart';
 import { getTextColor, getBackgroundColor } from '@/Helpers/Colors'; // import helper functions
-import StreakStats from './partials/StreaksStats';
+import StreakStats from '../partials/StreaksStats';
 
 export default function Index(props) {
     const {links} = usePage().props;
