@@ -148,6 +148,7 @@ class HabitInsightService
             'goal' => $goalValue,
             'color_index' => $color,
             'goal_met' => $time > $habitUser->streak_goal,
+            'is_active' => $insightRepository->isHabitActive($habitUser->habit_id, $userId),
         ];
     }
 

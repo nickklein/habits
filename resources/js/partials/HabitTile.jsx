@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
-import { FaChevronDown, FaChevronRight, FaExclamationTriangle } from 'react-icons/fa';
+import { FaChevronDown, FaChevronRight, FaExclamationTriangle, FaPlay } from 'react-icons/fa';
 import Card from './Card';
 import SkeletonTile from './SkeletonTile';
 import { getTextColor } from '@/Helpers/Colors';
@@ -86,18 +86,32 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
     return (
         <>
             { (type === INSIGHT_TYPE || !habitData.goal_met) && (
-                <Card className="flex justify-between">
-                    <div>
-                        <h3 className="text-xl font-semibold" style={{ color: textColor }}>
-                            <Link href={route('habits.show', habitData.id)}>{habitData.icon} {habitData.name}</Link>
-                        </h3>
-                        <div className="text-4xl font-bold text-white">
-                            {habitData.current.total} <span className="text-gray-400 text-sm mr-3">{habitData.current.unit}</span> 
-                            {habitData.goal.total && (
-                                <>
-                                    / {habitData.goal.total} <span className="text-gray-400 text-sm">{habitData.goal.unit} {habitData.goal.type}</span>
-                                </>
+                <Card className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="text-2xl">
+                            {habitData.is_active ? (
+                                <FaPlay className="text-green-400 animate-pulse" />
+                            ) : (
+                                <span style={{ color: textColor }}>{habitData.icon}</span>
                             )}
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-semibold" style={{ color: textColor }}>
+                                <Link href={route('habits.show', habitData.id)}>
+                                    {habitData.name}
+                                    {habitData.is_active && (
+                                        <span className="ml-2 text-green-400 text-sm font-medium">In Progress</span>
+                                    )}
+                                </Link>
+                            </h3>
+                            <div className="text-2xl font-bold text-white">
+                                {habitData.current.total} <span className="text-gray-400 text-sm mr-3">{habitData.current.unit}</span> 
+                                {habitData.goal.total && (
+                                    <>
+                                        / {habitData.goal.total} <span className="text-gray-400 text-sm">{habitData.goal.unit} {habitData.goal.type}</span>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
                     {habitData.children && habitData.children.length > 0 && (
@@ -114,16 +128,32 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
             {childrenOpen && habitData.children && habitData.children.map((child, index) => (
                 (type === INSIGHT_TYPE || !child.goal_met) && (
                     <Card key={index} className="ml-5">
-                        <h3 className="text-xl font-semibold" style={{ color: textColor }}>
-                            <Link href={route('habits.show', child.id)}>{child.icon} {child.name}</Link>
-                        </h3>
-                        <div className="text-4xl font-bold text-white">
-                            {child.current.total} <span className="text-gray-400 text-sm mr-3">{child.current.unit}</span>
-                            {child.goal.total && (
-                                <>
-                                    / {child.goal.total} <span className="text-gray-400 text-sm">{child.goal.unit} {child.goal.type}</span>
-                                </>
-                            )}
+                        <div className="flex items-center gap-3">
+                            <div className="text-2xl">
+                                {child.is_active ? (
+                                    <FaPlay className="text-green-400 animate-pulse" />
+                                ) : (
+                                    <span style={{ color: textColor }}>{child.icon}</span>
+                                )}
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-semibold" style={{ color: textColor }}>
+                                    <Link href={route('habits.show', child.id)}>
+                                        {child.name}
+                                        {child.is_active && (
+                                            <span className="ml-2 text-green-400 text-sm font-medium">In Progress</span>
+                                        )}
+                                    </Link>
+                                </h3>
+                                <div className="text-2xl font-bold text-white">
+                                    {child.current.total} <span className="text-gray-400 text-sm mr-3">{child.current.unit}</span>
+                                    {child.goal.total && (
+                                        <>
+                                            / {child.goal.total} <span className="text-gray-400 text-sm">{child.goal.unit} {child.goal.type}</span>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     </Card>
                 )
