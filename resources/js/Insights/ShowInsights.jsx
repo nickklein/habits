@@ -100,6 +100,17 @@ export default function Index(props) {
                         barTwo={{number: props.yearlySummaryHighlights.barTwo.number, unit: props.yearlySummaryHighlights.barTwo.unit, barText: props.yearlySummaryHighlights.barTwo.bar_text, width: props.yearlySummaryHighlights.barTwo.width}}
                     />
                 </div>
+
+                <div className="py-2">
+                    <h2 className="text-xl font-semibold text-white mb-5">Total To Date</h2>
+                    <TwoHorizontalBarChart
+                        title={props.habit.habit.name  + ' Summary'}
+                        color={color}
+                        bgColor={bgColor}
+                        description={props.totalSummaryHighlights.description}
+                        barOne={{number: props.totalSummaryHighlights.barOne.number, unit: props.totalSummaryHighlights.barOne.unit, barText: props.totalSummaryHighlights.barOne.bar_text, width: props.yearlySummaryHighlights.barOne.width}}
+                    />
+                </div>
             </div>
         </AuthenticatedLayout>
     )

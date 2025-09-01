@@ -561,6 +561,36 @@ class HabitInsightService
     }
 
     /**
+     * Get Yearly Summary highlights
+     *
+    */
+    public function getTotalSummaryHighlights(HabitUser $habitUser, string $timezone = 'UTC', HabitService $habitService, HabitInsightRepository $habitInsightRepository): array
+    {
+        $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
+
+        $startOfJourney = Carbon::now($timezone)->subYear(25)->startOfDay()->setTimezone('UTC');
+        $currentDate = Carbon::now($timezone)->endOfDay()->setTimezone('UTC');
+
+        $totals = $habitInsightRepository->getSummationByHabitId($habitUser->user_id, $habitIds, $startOfJourney, $currentDate);
+
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+        $totalValues = $handler->formatValue($totals);
+
+        $unit = $handler->getUnitLabelFull();
+
+        return [
+            'description' => "You have done {$totals} {$unit} in total to date.",
+            'barOne' => [
+                "number" => $totalValues['value'],
+                "unit" => $totalValues['unit_full'],
+                "bar_text" => 'Total',
+                "width" => 100,
+            ],
+        ];
+    }
+
+
+    /**
      * Get Streaks
      *
      * @param HabitUser $habitUser
