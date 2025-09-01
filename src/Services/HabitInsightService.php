@@ -290,12 +290,11 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $yesterday = Carbon::yesterday($timezone)->hour(0)->setTimezone('UTC');
-        $yesterdayEnd = Carbon::yesterday($timezone)->hour(24)->setTimezone('UTC');
+        $yesterday = Carbon::yesterday($timezone)->startOfDay()->setTimezone('UTC');
+        $yesterdayEnd = Carbon::yesterday($timezone)->endOfDay()->setTimezone('UTC');
 
-        $dayBeforeYesterday = Carbon::today($timezone)->subDays(2)->hour(0)->setTimezone('UTC');
-        $dayBeforeYesterdayEnd = Carbon::today($timezone)->subDays(2)->hour(24)->setTimezone('UTC');
-
+        $dayBeforeYesterday = Carbon::today($timezone)->subDays(2)->startOfDay()->setTimezone('UTC');
+        $dayBeforeYesterdayEnd = Carbon::today($timezone)->subDays(2)->endOfDay()->setTimezone('UTC');
 
         // Grab the values for yesterday and the day before yesterday
         $yesterdayCollection = $habitInsightRepository->getDailyTotalsByHabitId($habitUser->user_id, $timezone, $habitIds, $yesterday, $yesterdayEnd);
@@ -340,11 +339,11 @@ class HabitInsightService
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
 
-        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6)->setTimezone('UTC');
-        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->setTimezone('UTC');
+        $startOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->subDays(6)->startOfDay()->setTimezone('UTC');
+        $endOfRangeThisWeek = Carbon::now($timezone)->subWeeks(0)->endOfDay()->setTimezone('UTC');
 
-        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6)->setTimezone('UTC');
-        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->setTimezone('UTC');
+        $startOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->subDays(6)->startOfDay()->setTimezone('UTC');
+        $endOfRangeLastWeek = Carbon::now($timezone)->subWeeks(1)->endofDay()->setTimezone('UTC');
 
         $thisWeek = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeThisWeek, $endOfRangeThisWeek, 7);
         $weekBefore = $habitInsightRepository->getAveragesByHabitId($habitUser->user_id, $habitIds, $startOfRangeLastWeek, $endOfRangeLastWeek, 7);
@@ -366,13 +365,13 @@ class HabitInsightService
             'barOne' => [
                 "number" => $thisWeekValues['value'],
                 "unit" => $thisWeekValues['unit_full'] . ' / day',
-                "bar_text" => $startOfRangeThisWeek->format('j. F') . ' - ' . $endOfRangeThisWeek->format('j. F'),
+                "bar_text" => $startOfRangeThisWeek->setTimezone($timezone)->format('j. F') . ' - ' . $endOfRangeThisWeek->setTimezone($timezone)->format('j. F'),
                 "width" => $percentages[0]
             ],
             'barTwo' => [
                 "number" => $weekBeforeValues['value'],
                 "unit" => $weekBeforeValues['unit_full'] . ' / day',
-                "bar_text" => $startOfRangeLastWeek->format('j. F') . ' - ' . $endOfRangeLastWeek->format('j. F'),
+                "bar_text" => $startOfRangeLastWeek->setTimezone($timezone)->format('j. F') . ' - ' . $endOfRangeLastWeek->setTimezone($timezone)->format('j. F'),
                 "width" => $percentages[1]
             ]
         ];
@@ -415,13 +414,13 @@ class HabitInsightService
             'barOne' => [
                 "number" => $thisWeekValues['value'],
                 "unit" => $thisWeekValues['unit_full'],
-                "bar_text" => $startOfRangeThisWeek->format('j. F') . ' - ' . $endOfRangeThisWeek->format('j. F'),
+                "bar_text" => $startOfRangeThisWeek->setTimezone($timezone)->format('j. F') . ' - ' . $endOfRangeThisWeek->setTimezone($timezone)->format('j. F'),
                 "width" => $percentages[0]
             ],
             'barTwo' => [
                 "number" => $weekBeforeValues['value'],
                 "unit" => $weekBeforeValues['unit_full'],
-                "bar_text" => $startOfRangeLastWeek->format('j. F') . ' - ' . $endOfRangeLastWeek->format('j. F'),
+                "bar_text" => $startOfRangeLastWeek->setTimezone($timezone)->format('j. F') . ' - ' . $endOfRangeLastWeek->setTimezone($timezone)->format('j. F'),
                 "width" => $percentages[1]
             ]
         ];
@@ -460,13 +459,13 @@ class HabitInsightService
             'barOne' => [
                 "number" => $thisMonthValues['value'],
                 "unit" => $thisMonthValues['unit_full'] . ' / day',
-                "bar_text" => $startOfRangeThisMonth->format('j. F') . ' - ' . $endOfRangeThisMonth->format('j. F'),
+                "bar_text" => $startOfRangeThisMonth->setTimezone($timezone)->format('j. F') . ' - ' . $endOfRangeThisMonth->setTimezone($timezone)->format('j. F'),
                 "width" => $percentages[0],
             ],
             'barTwo' => [
                 "number" => $lastMonthValues['value'],
                 "unit" => $lastMonthValues['unit_full'] . ' / day',
-                "bar_text" => $startOfRangeLastMonth->format('j. F') . ' - ' . $endOfRangeLastMonth->format('j. F'),
+                "bar_text" => $startOfRangeLastMonth->setTimezone($timezone)->format('j. F') . ' - ' . $endOfRangeLastMonth->setTimezone($timezone)->format('j. F'),
                 "width" => $percentages[1],
             ],
         ];
@@ -506,13 +505,13 @@ class HabitInsightService
             'barOne' => [
                 "number" => $thisWeekValues['value'],
                 "unit" => $thisWeekValues['unit_full'],
-                "bar_text" => $startOfRangeThisMonth->format('j. F') . ' - ' . $endOfRangeThisMonth->format('j. F'),
+                "bar_text" => $startOfRangeThisMonth->setTimezone($timezone)->format('j. F') . ' - ' . $endOfRangeThisMonth->setTimezone($timezone)->format('j. F'),
                 "width" => $percentages[0]
             ],
             'barTwo' => [
                 "number" => $weekBeforeValues['value'],
                 "unit" => $weekBeforeValues['unit_full'],
-                "bar_text" => $startOfRangeLastMonth->format('j. F') . ' - ' . $endOfRangeLastMonth->format('j. F'),
+                "bar_text" => $startOfRangeLastMonth->setTimezone($timezone)->format('j. F') . ' - ' . $endOfRangeLastMonth->setTimezone($timezone)->format('j. F'),
                 "width" => $percentages[1]
             ]
         ];
