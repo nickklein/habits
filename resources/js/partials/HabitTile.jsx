@@ -83,9 +83,20 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
 
     const textColor = getTextColor(habitData.color_index);
 
+    const shouldShowParent = () => {
+        if (type === INSIGHT_TYPE) return true;
+        if (!habitData.goal_met) return true;
+
+        if (habitData.children && habitData.children.length > 0) {
+            return !habitData.children.every(child => child.goal_met);
+        }
+
+        return true;
+    };
+
     return (
         <>
-            { (type === INSIGHT_TYPE || !habitData.goal_met) && (
+            { shouldShowParent() && (
                 <Card className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="text-2xl">
