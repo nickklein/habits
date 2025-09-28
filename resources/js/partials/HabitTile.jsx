@@ -11,7 +11,7 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
     const [habitData, setHabitData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [childrenOpen, setChildrenOpen] = useState(false);
+    const [childrenOpen, setChildrenOpen] = useState(true);
 
     useEffect(() => {
         fetchHabitData();
