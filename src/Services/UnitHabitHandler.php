@@ -197,4 +197,13 @@ class UnitHabitHandler implements HabitTypeInterface
 
         return $habitTime->save();
     }
+
+    public function formatValueForChart(int $value): array
+    {
+        return [
+            'value' => $value,
+            'unit' => 'x',
+            'unit_full' => $value > 1 ? 'counts' : 'count',
+        ];
+    }
 }

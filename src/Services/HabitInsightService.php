@@ -54,7 +54,7 @@ class HabitInsightService
         
         $data = $insightRepository->getDailyTotalsByHabitId($userId, $timezone, [$habitId], $startDate, $endDate);
         $mappedData = $data->map(function($item) use ($handler) {
-            $habit = $handler->formatValue($item->total_duration);
+            $habit = $handler->formatValueForChart($item->total_duration);
 
             $item->total_duration = $habit['value'];
             $item->unit = $habit['unit'];

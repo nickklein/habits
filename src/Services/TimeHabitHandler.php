@@ -232,4 +232,15 @@ class TimeHabitHandler implements HabitTypeInterface
 
         return $habitTime->save();
     }
+
+    public function formatValueForChart(int $value): array
+    {
+        $minutes = $value / 60;
+
+        return [
+            'value' => number_format($minutes, 1),
+            'unit' => 'min',
+            'unit_full' => 'minutes',
+        ];
+    }
 }

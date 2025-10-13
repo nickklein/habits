@@ -215,4 +215,13 @@ class MLHabitHandler implements HabitTypeInterface
 
         return $habitTime->save();
     }
+
+    public function formatValueForChart(int $value): array
+    {
+        return [
+            'value' => number_format($value, 0),
+            'unit' => 'ml',
+            'unit_full' => 'milliliters',
+        ];
+    }
 }
