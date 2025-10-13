@@ -21,19 +21,19 @@ function SimpleBarChart({color, habitId}) {
             { chartData && (
             <>
                 <h2 className="text-xl font-semibold text-white mb-5">Activity Chart</h2>
-                <div className="flex space-x-2">
-                    {['30d', '90d', 'all'].map((period) => (
-                        <button
-                            key={period}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                                true                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-600 text-gray-300 hover:bg-gray-500'
-                            }`}
-                        >
-                            {period}
-                        </button>
-                    ))}
-                </div>
+                {/* <div className="flex space-x-2"> */}
+                {/*     {['30d', '90d', 'all'].map((period) => ( */}
+                {/*         <button */}
+                {/*             key={period} */}
+                {/*             className={`px-3 py-1 rounded text-sm font-medium transition-colors ${ */}
+                {/*                 true                                    ? 'bg-blue-600 text-white' */}
+                {/*                     : 'bg-gray-600 text-gray-300 hover:bg-gray-500' */}
+                {/*             }`} */}
+                {/*         > */}
+                {/*             {period} */}
+                {/*         </button> */}
+                {/*     ))} */}
+                {/* </div> */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
                     <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={chartData ?? []} margin={{ top: 5, right: 0, left: -25, bottom: 5 }}>
