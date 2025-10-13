@@ -12,6 +12,7 @@ use NickKlein\Habits\Enums\GoalPeriodEnum;
 
 class HabitInsightService
 {
+    // @deprecated
     const HABIT_COLOR_INDEX = [
         1 => 'blue',
         2 => 'gray',
@@ -45,6 +46,25 @@ class HabitInsightService
         //
     }
 
+    public function charts(HabitUser $habitUser, int $userId, string $timezone, int $habitId, HabitInsightRepository $insightRepository): array
+    {
+        $startDate = Carbon::now()->subDay(30);
+        $endDate = Carbon::now()->subDay(0);
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+        
+        $data = $insightRepository->getDailyTotalsByHabitId($userId, $timezone, [$habitId], $startDate, $endDate);
+        $mappedData = $data->map(function($item) use ($handler) {
+            $habit = $handler->formatValue($item->total_duration);
+
+            $item->total_duration = $habit['value'];
+            $item->unit = $habit['unit'];
+            $item->date_column = Carbon::parse($item->date_column)->format('M d');
+
+            return $item;
+        });
+
+        return $mappedData->toArray() ?? [];
+    }
 
 
     /**

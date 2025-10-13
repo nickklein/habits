@@ -14,11 +14,16 @@ class HabitSeeder
      */
     public function run(int $count = 1)
     {
-        $faker = Faker::create();
         Habit::unguard();
-        for($row = 0; $row <= $count; $row++) {
+        $habits = [
+            'Learning a language',
+            'Exercising',   
+            'Drinking water',
+            'Standing',
+        ];
+        foreach($habits as $habit) {
             Habit::create([
-                'name' => $faker->word(),
+                'name' => $habit,
             ]);
         }
         Habit::reguard();

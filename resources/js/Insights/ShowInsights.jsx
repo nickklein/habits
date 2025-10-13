@@ -2,14 +2,30 @@ import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
 import TwoHorizontalBarChart from '../partials/TwoHorizontalBarChart';
+import SimpleBarChart from '../partials/SimpleBarChart';
 import { getTextColor, getBackgroundColor } from '@/Helpers/Colors'; // import helper functions
 import StreakStats from '../partials/StreaksStats';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useState } from 'react';
 
 export default function Index(props) {
     const {links} = usePage().props;
+    const [chartData, setChartData] = useState(props.weeklyCharts || []);
     // @todo move this out of the dailySummaryHighlights method
     let color = getTextColor(props.color);
     let bgColor = getBackgroundColor(props.color);
+
+    const handlePeriodChange = async (period) => {
+        try {
+            const response = await fetch(`/habit/show/${props.habit.habit.habit_id}/charts?period=${period}`);
+            if (response.ok) {
+                const newData = await response.json();
+                setChartData(newData);
+            }
+        } catch (error) {
+            console.error('Failed to fetch chart data:', error);
+        }
+    };
 
     return (
         <AuthenticatedLayout
@@ -19,6 +35,7 @@ export default function Index(props) {
         >
             <Head title="Habits Insight" />
             <div className={"max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8"}>
+
                 {props.streaks.goals && (
                     <div className="py-2">
                         <h2 className="text-xl font-semibold text-white mb-5">Streaks</h2>
@@ -32,6 +49,8 @@ export default function Index(props) {
                         />
                     </div>
                 )}
+
+                <SimpleBarChart data={props.weeklyCharts} color={color} habitId={props.habit.habit.habit_id} />
 
                 <div className="py-2">
                     <h2 className="text-xl font-semibold text-white mb-5">Daily Highlights</h2>

@@ -18,7 +18,7 @@ function TwoHorizontalBarChart(props) {
                 <div className="absolute h-full" style={{width: `${props.barOne.width}%`, backgroundColor: bgColor}}></div>
                 <span className="absolute left-2 text-white font-semibold">{props.barOne.barText}</span>
             </div>
-            { props.barTwo && props.barTwo.number && (
+            { props.barTwo && (
                 <>
                     <div className="flex items-center mb-3">
                         <span className="text-4xl text-white font-semibold mr-2">{props.barTwo.number}</span>

@@ -3,6 +3,7 @@
 namespace NickKlein\Habits\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
@@ -75,10 +76,12 @@ class HabitInsightController extends Controller
     {
         $habitsUser = $habitService->getHabit($habitId, Auth::user()->id);
 
+        /* dd($habitInsightService->getYearlySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository)); */
         return Inertia::render('Habits/Insights/ShowInsights', [
             'habit' => $habitsUser,
             'color' => $habitsUser->color_index ?? '#ffffff',
             'streaks' => $habitInsightService->getStreaks($habitsUser, Auth::user()->id, Auth::user()->timezone, $habitId, $habitInsightRepository),
+            /* 'monthlyCharts' => $habitInsightService->monthlyCharts($habitsUser, Auth::user()->id, Auth::user()->timezone, $habitId, $habitInsightRepository), */
             'dailySummaryHighlights' => $habitInsightService->getDailySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
             'weeklyAveragesHighlights' => $habitInsightService->getWeeklyAverageHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
             'weeklySummaryHighlights' => $habitInsightService->weeklySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
@@ -87,5 +90,20 @@ class HabitInsightController extends Controller
             'yearlySummaryHighlights' => $habitInsightService->getYearlySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
             'totalSummaryHighlights' => $habitInsightService->getTotalSummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
         ]);
+    }
+
+    public function getChartInformation(Request $request, HabitService $habitService, HabitInsightService $habitInsightService, HabitInsightRepository $habitInsightRepository): JsonResponse
+    {
+        // TODO: Make the route habitId restricted to integer only inside the routes (aka where())
+        $habitId = (int)$request->route('habitId');
+        $habitsUser = $habitService->getHabit($habitId, Auth::user()->id);
+
+        if (!$habitsUser) {
+            abort(503);
+        }
+
+        $response = $habitInsightService->charts($habitsUser, Auth::user()->id, Auth::user()->timezone, $habitId, $habitInsightRepository);
+
+        return response()->json($response);
     }
 }
