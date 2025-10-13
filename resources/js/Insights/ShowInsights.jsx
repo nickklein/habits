@@ -50,7 +50,7 @@ export default function Index(props) {
                     </div>
                 )}
 
-                <SimpleBarChart data={props.weeklyCharts} color={color} />
+                <SimpleBarChart data={props.weeklyCharts} color={color} habitId={props.habit.habit.habit_id} />
 
                 <div className="py-2">
                     <h2 className="text-xl font-semibold text-white mb-5">Daily Highlights</h2>

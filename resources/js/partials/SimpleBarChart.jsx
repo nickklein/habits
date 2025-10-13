@@ -52,4 +52,3 @@ function SimpleBarChart({color, habitId}) {
 }
 
 export default SimpleBarChart;
-xport default SimpleBarChart;
