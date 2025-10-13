@@ -48,10 +48,10 @@ class HabitInsightService
 
     public function charts(HabitUser $habitUser, int $userId, string $timezone, int $habitId, HabitInsightRepository $insightRepository): array
     {
-        $startDate = Carbon::now()->subDay(30);
-        $endDate = Carbon::now()->subDay(0);
+        $startDate = Carbon::now($timezone)->subDay(30)->startOfDay()->setTimezone('UTC');
+        $endDate = Carbon::now($timezone)->subDay(0)->endOfDay()->setTimezone('UTC');
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
-        
+
         $data = $insightRepository->getDailyTotalsByHabitId($userId, $timezone, [$habitId], $startDate, $endDate);
         $mappedData = $data->map(function($item) use ($handler) {
             $habit = $handler->formatValueForChart($item->total_duration);
