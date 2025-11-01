@@ -24,6 +24,8 @@ class HabitUser extends Model
 
     public function children()
     {
-        return $this->hasMany(HabitUser::class, 'parent_id')->with('habit');
+        return $this->hasMany(HabitUser::class, 'parent_id')
+            ->where('archive', false)
+            ->with('habit');
     }
 }

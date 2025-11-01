@@ -201,6 +201,7 @@ class HabitService
         return HabitUser::with(['habit', 'children', 'parent'])
             ->where('habit_id', $habitId)
             ->where('user_id', $userId)
+            ->where('archive', 0)
             ->first();
     }
 
