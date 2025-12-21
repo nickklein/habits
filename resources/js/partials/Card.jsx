@@ -7,7 +7,7 @@ function Card(props) {
     let bgColor = getBackgroundColor(props.color);
     
     return (
-        <div className={"bg-gray-800 shadow-lg rounded-lg p-6 mt-4 " + props.className}>
+        <div className={"bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg p-6 mt-4 " + props.className}>
             {props.children}
         </div>
     )

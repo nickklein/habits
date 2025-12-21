@@ -38,13 +38,13 @@ export default function Index(props) {
 
                 {props.streaks.goals && (
                     <div className="py-2">
-                        <h2 className="text-xl font-semibold text-white mb-5">Streaks</h2>
-                        <StreakStats 
+                        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-5">Streaks</h2>
+                        <StreakStats
                             color={color}
                             goals={props.streaks.goals}
                             goalsType={props.streaks.goalsType}
-                            currentStreak={props.streaks.currentStreak} 
-                            bestStreak={props.streaks.longestStreak} 
+                            currentStreak={props.streaks.currentStreak}
+                            bestStreak={props.streaks.longestStreak}
                             totalDaysDone={props.streaks.totalStreaks}
                         />
                     </div>
@@ -53,7 +53,7 @@ export default function Index(props) {
                 <SimpleBarChart data={props.weeklyCharts} color={color} habitId={props.habit.habit.habit_id} />
 
                 <div className="py-2">
-                    <h2 className="text-xl font-semibold text-white mb-5">Daily Highlights</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-5">Daily Highlights</h2>
                     <TwoHorizontalBarChart
                         title={props.habit.habit.name + ' Summary'}
                         color={color}
@@ -65,7 +65,7 @@ export default function Index(props) {
                 </div>
 
                 <div className="py-2">
-                    <h2 className="text-xl font-semibold text-white mb-5">Weekly Highlights</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-5">Weekly Highlights</h2>
                     <TwoHorizontalBarChart
                         title={props.habit.habit.name + ' Averages'}
                         color={color}
@@ -87,7 +87,7 @@ export default function Index(props) {
                 </div>
 
                 <div className="py-2">
-                    <h2 className="text-xl font-semibold text-white mb-5">Monthly Highlights</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-5">Monthly Highlights</h2>
                     <TwoHorizontalBarChart
                         title={props.habit.habit.name  + ' Averages'}
                         color={color}
@@ -109,7 +109,7 @@ export default function Index(props) {
                 </div>
 
                 <div className="py-2">
-                    <h2 className="text-xl font-semibold text-white mb-5">Yearly Highlights</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-5">Yearly Highlights</h2>
                     <TwoHorizontalBarChart
                         title={props.habit.habit.name  + ' Summary'}
                         color={color}
@@ -121,7 +121,7 @@ export default function Index(props) {
                 </div>
 
                 <div className="py-2">
-                    <h2 className="text-xl font-semibold text-white mb-5">Total To Date</h2>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-5">Total To Date</h2>
                     <TwoHorizontalBarChart
                         title={props.habit.habit.name  + ' Summary'}
                         color={color}

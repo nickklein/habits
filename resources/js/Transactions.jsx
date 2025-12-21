@@ -40,9 +40,9 @@ export default function Transactions(props) {
                         <Link href={route('habits.transactions.create')} className="inline-flex items-center mx-1 px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 false ">Add Item</Link>
                         <Link href={anyHabitActive ? route('habits.transactions.timer.end') : route('habits.transactions.timer.create')} className="inline-flex items-center mx-1 px-4 py-2 bg-gray-800 dark:bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-white dark:text-gray-800 uppercase tracking-widest hover:bg-gray-700 dark:hover:bg-white focus:bg-gray-700 dark:focus:bg-white active:bg-gray-900 dark:active:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 false ">{anyHabitActive ? "Stop Timer" : "Start Timer"}</Link>
                 </div>
-                <table className="bg-gray-800 text-white w-full">
+                <table className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white w-full shadow-sm sm:rounded-lg overflow-hidden">
                     <thead>
-                        <tr className="text-gray-500 uppercase font-medium">
+                        <tr className="text-gray-600 dark:text-gray-500 uppercase font-medium">
                         <th className="px-4 py-3">ID</th>
                         <th className="px-4 py-3">Habit Name</th>
                         <th className="px-4 py-3">Start Time</th>
@@ -57,11 +57,11 @@ export default function Transactions(props) {
                             return (
                                 <tr key={item.id}>
                                     <td className="px-4 py-3">{item.id}</td>
-                                    <td className="px-4 py-3"><Link href={route('habits.transactions.edit', item.id)}>{item.name}</Link></td>
+                                    <td className="px-4 py-3"><Link href={route('habits.transactions.edit', item.id)} className="text-blue-600 dark:text-blue-400 hover:underline">{item.name}</Link></td>
                                     <td className="px-4 py-3">{item.start_time}</td>
                                     <td className="px-4 py-3">{item.end_time}</td>
                                     <td className="px-4 py-3">{item.duration}</td>
-                                    <td className="px-4 py-3"><a href="#" onClick={() => handleDelete(item.id)}>Delete</a></td>
+                                    <td className="px-4 py-3"><a href="#" onClick={() => handleDelete(item.id)} className="text-red-600 dark:text-red-400 hover:underline">Delete</a></td>
                                 </tr>
                             )
                         })}

@@ -92,7 +92,7 @@ export default function DailyCalendar({ onDateSelect, selectedDate = null }) {
             <div className="flex items-center gap-2 w-full">
                 <button
                     onClick={goToPreviousWeek}
-                    className="flex-shrink-0 p-2 text-gray-300 hover:bg-gray-600 rounded-lg transition-colors duration-200 hidden sm:block"
+                    className="flex-shrink-0 p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 hidden sm:block"
                 >
                     <FaChevronLeft size={16} />
                 </button>
@@ -109,12 +109,12 @@ export default function DailyCalendar({ onDateSelect, selectedDate = null }) {
                         onClick={() => handleDateClick(date)}
                         className={`
                             flex flex-col items-center p-2 sm:p-3 rounded-lg cursor-pointer transition-all duration-200
-                            ${isSelected(date) 
-                                ? 'bg-blue-600 text-white shadow-lg' 
-                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            ${isSelected(date)
+                                ? 'bg-blue-600 text-white shadow-lg'
+                                : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                             }
-                            ${isToday(date) && !isSelected(date) 
-                                ? 'ring-2 ring-blue-400' 
+                            ${isToday(date) && !isSelected(date)
+                                ? 'ring-2 ring-blue-400'
                                 : ''
                             }
                             w-full
@@ -137,9 +137,9 @@ export default function DailyCalendar({ onDateSelect, selectedDate = null }) {
                     onClick={goToNextWeek}
                     disabled={!canGoNext}
                     className={`flex-shrink-0 p-2 rounded-lg transition-colors duration-200 hidden sm:block ${
-                        canGoNext 
-                            ? 'text-gray-300 hover:bg-gray-600' 
-                            : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                        canGoNext
+                            ? 'text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                            : 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'
                     }`}
                 >
                     <FaChevronRight size={16} />

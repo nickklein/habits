@@ -62,13 +62,13 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
 
     if (error) {
         return (
-            <Card className="flex items-center gap-3 bg-red-900/20 border-red-500/20">
-                <FaExclamationTriangle className="text-red-400 text-lg" />
+            <Card className="flex items-center gap-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/20">
+                <FaExclamationTriangle className="text-red-600 dark:text-red-400 text-lg" />
                 <div>
-                    <p className="text-red-400 font-medium">Failed to load habit</p>
-                    <button 
+                    <p className="text-red-600 dark:text-red-400 font-medium">Failed to load habit</p>
+                    <button
                         onClick={fetchHabitData}
-                        className="text-sm text-red-300 hover:text-red-200 underline"
+                        className="text-sm text-red-500 dark:text-red-300 hover:text-red-600 dark:hover:text-red-200 underline"
                     >
                         Try again
                     </button>
@@ -111,24 +111,24 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
                                 <Link href={route('habits.show', habitData.id)}>
                                     {habitData.name}
                                     {habitData.is_active && (
-                                        <span className="ml-2 text-green-400 text-sm font-medium">In Progress</span>
+                                        <span className="ml-2 text-green-600 dark:text-green-400 text-sm font-medium">In Progress</span>
                                     )}
                                 </Link>
                             </h3>
-                            <div className="text-2xl font-bold text-white">
-                                {habitData.current.total} <span className="text-gray-400 text-sm mr-3">{habitData.current.unit}</span> 
+                            <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                {habitData.current.total} <span className="text-gray-600 dark:text-gray-400 text-sm mr-3">{habitData.current.unit}</span>
                                 {habitData.goal.total && (
                                     <>
-                                        / {habitData.goal.total} <span className="text-gray-400 text-sm">{habitData.goal.unit} {habitData.goal.type}</span>
+                                        / {habitData.goal.total} <span className="text-gray-600 dark:text-gray-400 text-sm">{habitData.goal.unit} {habitData.goal.type}</span>
                                     </>
                                 )}
                             </div>
                         </div>
                     </div>
                     {habitData.children && habitData.children.length > 0 && (
-                        <button 
+                        <button
                             onClick={toggleChildren}
-                            className="text-white mr-4 inline-flex items-center hover:text-gray-300 transition-colors"
+                            className="text-gray-900 dark:text-white mr-4 inline-flex items-center hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                         >
                             {childrenOpen ? <FaChevronDown size={22} /> : <FaChevronRight size={22} />}
                         </button>
@@ -152,15 +152,15 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
                                     <Link href={route('habits.show', child.id)}>
                                         {child.name}
                                         {child.is_active && (
-                                            <span className="ml-2 text-green-400 text-sm font-medium">In Progress</span>
+                                            <span className="ml-2 text-green-600 dark:text-green-400 text-sm font-medium">In Progress</span>
                                         )}
                                     </Link>
                                 </h3>
-                                <div className="text-2xl font-bold text-white">
-                                    {child.current.total} <span className="text-gray-400 text-sm mr-3">{child.current.unit}</span>
+                                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                                    {child.current.total} <span className="text-gray-600 dark:text-gray-400 text-sm mr-3">{child.current.unit}</span>
                                     {child.goal.total && (
                                         <>
-                                            / {child.goal.total} <span className="text-gray-400 text-sm">{child.goal.unit} {child.goal.type}</span>
+                                            / {child.goal.total} <span className="text-gray-600 dark:text-gray-400 text-sm">{child.goal.unit} {child.goal.type}</span>
                                         </>
                                     )}
                                 </div>
