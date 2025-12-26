@@ -1,7 +1,5 @@
-import Pagination from '@/Components/Pagination';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
 import HabitTile from '../partials/HabitTile';
 
 export default function Index(props) {

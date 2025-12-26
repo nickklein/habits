@@ -106,4 +106,11 @@ class HabitInsightController extends Controller
 
         return response()->json($response);
     }
+
+    public function getYearlyComparisonChartForHabit(int $habitId, HabitInsightService $habitInsightService, HabitInsightRepository $habitInsightRepository): JsonResponse
+    {
+        $response = $habitInsightService->yearlyComparisonChartForHabit($habitId, Auth::user()->id, Auth::user()->timezone, $habitInsightRepository);
+
+        return response()->json($response);
+    }
 }

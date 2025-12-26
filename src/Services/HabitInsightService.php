@@ -807,4 +807,68 @@ class HabitInsightService
 
         return $totals->sum('total_duration');
     }
+
+    public function yearlyComparisonChartForHabit(int $habitId, int $userId, string $timezone, HabitInsightRepository $insightRepository): array
+    {
+        $currentYear = Carbon::now($timezone)->year;
+        $previousYear = $currentYear - 1;
+
+        $yearlyData = [];
+
+        foreach ([$previousYear, $currentYear] as $year) {
+            $startDate = Carbon::createFromDate($year, 1, 1, $timezone)->startOfDay()->setTimezone('UTC');
+            $endDate = Carbon::createFromDate($year, 12, 31, $timezone)->endOfDay()->setTimezone('UTC');
+
+            $dailyTotals = $insightRepository->getDailyTotalsByHabitId($userId, $timezone, [$habitId], $startDate, $endDate);
+
+            $cumulativeTotal = 0;
+            $cumulativeData = [];
+
+            $currentDate = Carbon::createFromDate($year, 1, 1, $timezone);
+            $lastDate = min(Carbon::now($timezone), Carbon::createFromDate($year, 12, 31, $timezone));
+
+            $dailyTotalsMap = [];
+            foreach ($dailyTotals as $dailyTotal) {
+                $dailyTotalsMap[$dailyTotal->date_column] = $dailyTotal->total_duration;
+            }
+
+            while ($currentDate <= $lastDate) {
+                $dateKey = $currentDate->format('Y-m-d');
+                $dailyDuration = $dailyTotalsMap[$dateKey] ?? 0;
+                $cumulativeTotal += $dailyDuration;
+
+                $cumulativeData[$currentDate->dayOfYear] = round($cumulativeTotal / 3600, 2);
+
+                $currentDate->addDay();
+            }
+
+            $yearlyData[$year] = $cumulativeData;
+        }
+
+        // Combine the data into the format expected by Recharts
+        $combinedData = [];
+        $maxDays = max(count($yearlyData[$previousYear]), count($yearlyData[$currentYear]));
+
+        for ($day = 1; $day <= $maxDays; $day++) {
+            $entry = ['day_of_year' => $day];
+
+            if (isset($yearlyData[$previousYear][$day])) {
+                $entry["total_$previousYear"] = $yearlyData[$previousYear][$day];
+            }
+
+            if (isset($yearlyData[$currentYear][$day])) {
+                $entry["total_$currentYear"] = $yearlyData[$currentYear][$day];
+            }
+
+            $combinedData[] = $entry;
+        }
+
+        return [
+            'data' => $combinedData,
+            'years' => [
+                'previous' => $previousYear,
+                'current' => $currentYear
+            ]
+        ];
+    }
 }
