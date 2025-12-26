@@ -12,6 +12,7 @@ Route::middleware(['web', 'auth'])->group(function() {
     Route::get('/api/habits/insights/{habitUserId}/summary', [HabitInsightController::class, 'getHabitUserSummary'])->name('api.habits.insights.summary');
     Route::get('/habit/show/{habitId}', [HabitInsightController::class, 'show'])->name('habits.show');
     Route::get('/habit/show/{habitId}/charts', [HabitInsightController::class, 'getChartInformation'])->name('habits.show.get-habit-information');
+    Route::get('/habits/show/yearly-comparison/{habitId}', [HabitInsightController::class, 'getYearlyComparisonChartForHabit'])->name('habits.yearly-comparison.habit');
     
     // Create new habits
     Route::get('/habit/create', [HabitController::class, 'create'])->name('habits.create');

@@ -50,6 +50,6 @@ class RunSeederCommand extends Command
         $this->habitUserSeeder->run([]);
 
         // Add habit times
-        $this->habitTimeSeeder->run([], 60);
+        $this->habitTimeSeeder->run([], 1095);
     }
 }
