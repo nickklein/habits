@@ -6,6 +6,7 @@ use NickKlein\Habits\Models\Habit;
 use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 use Illuminate\Database\Eloquent\Collection;
 use NickKlein\Habits\Services\HabitTypeFactory;
 use NickKlein\Habits\Enums\GoalPeriodEnum;
@@ -48,22 +49,35 @@ class HabitInsightService
 
     public function charts(HabitUser $habitUser, int $userId, string $timezone, int $habitId, HabitInsightRepository $insightRepository): array
     {
-        $startDate = Carbon::now($timezone)->subDay(30)->startOfDay()->setTimezone('UTC');
-        $endDate = Carbon::now($timezone)->subDay(0)->endOfDay()->setTimezone('UTC');
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        $data = $insightRepository->getDailyTotalsByHabitId($userId, $timezone, [$habitId], $startDate, $endDate);
-        $mappedData = $data->map(function($item) use ($handler) {
-            $habit = $handler->formatValueForChart($item->total_duration);
+        // Define date range
+        $period = CarbonPeriod::create(
+            Carbon::now($timezone)->subDays(30)->startOfDay(),
+            Carbon::now($timezone)->endOfDay()
+        );
 
-            $item->total_duration = $habit['value'];
-            $item->unit = $habit['unit'];
-            $item->date_column = Carbon::parse($item->date_column)->format('M d');
+        // Get actual data
+        $data = $insightRepository->getDailyTotalsByHabitId(
+            $userId,
+            $timezone,
+            [$habitId],
+            $period->start->copy()->setTimezone('UTC'),
+            $period->end->copy()->setTimezone('UTC')
+        )->keyBy('date_column');
 
-            return $item;
-        });
+        // Map all dates with actual or zero values
+        return collect($period)->map(function($date) use ($data, $handler) {
+            $dateKey = $date->format('Y-m-d');
+            $duration = $data->get($dateKey)?->total_duration ?? 0;
+            $formatted = $handler->formatValueForChart($duration);
 
-        return $mappedData->toArray() ?? [];
+            return [
+                'date_column' => $date->format('M d'),
+                'total_duration' => $formatted['value'],
+                'unit' => $formatted['unit'],
+            ];
+        })->values()->all();
     }
 
 
