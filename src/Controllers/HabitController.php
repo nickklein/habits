@@ -2,6 +2,7 @@
 
 namespace NickKlein\Habits\Controllers;
 
+use Carbon\Carbon;
 use NickKlein\Habits\Requests\CreateHabitRequest;
 use NickKlein\Habits\Services\HabitService;
 use Illuminate\Http\Response;
@@ -39,6 +40,7 @@ class HabitController extends Controller
 
         return Inertia::render('Habits/Index', [
             'habitUserIds' => $habitUserIds,
+            'todaysDate' => Carbon::now(Auth::user()->timezone)->format('Y-m-d'),
         ]);
     }
 
@@ -51,7 +53,7 @@ class HabitController extends Controller
      * @param HabitInsightRepository $habitInsightRepository
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getHabitUserSummary(int $habitUserId, Request $request, HabitService $habitService, HabitInsightService $habitInsightService, HabitInsightRepository $habitInsightRepository)
+    public function getHabitUserSummary(int $habitUserId, string $page, Request $request, HabitService $habitService, HabitInsightService $habitInsightService, HabitInsightRepository $habitInsightRepository)
     {
         $habitUser = HabitUser::with(['habit', 'children'])
             ->where('id', $habitUserId)
@@ -65,9 +67,40 @@ class HabitController extends Controller
         // Get date from query parameter, default to today
         $selectedDate = $request->query('date', now(Auth::user()->timezone)->toDateString());
 
-        $summary = $habitInsightService->getSingleHabitSummary($habitUser, Auth::user()->timezone, $habitService, $habitInsightRepository, $selectedDate);
+        $summary = $habitInsightService->getSingleHabitSummary($habitUser, $page, Auth::user()->timezone, $habitService, $habitInsightRepository, $selectedDate);
 
         return response()->json($summary);
+    }
+
+    /**
+     * Show the add transaction page for a habit
+     *
+     * @param int $habitId
+     * @param HabitInsightRepository $habitInsightRepository
+     * @return \Inertia\Response
+     */
+    public function addTransaction(int $habitId, HabitInsightRepository $habitInsightRepository)
+    {
+        $habitUser = HabitUser::with('habit')
+            ->where('habit_id', $habitId)
+            ->where('user_id', Auth::user()->id)
+            ->first();
+
+        if (!$habitUser) {
+            abort(404, 'Habit not found');
+        }
+
+        return Inertia::render('Habits/AddTransaction', [
+            'habitUser' => [
+                'id' => $habitUser->id,
+                'habit_id' => $habitUser->habit_id,
+                'name' => $habitUser->habit->name,
+                'icon' => $habitUser->icon,
+                'color_index' => $habitUser->color_index,
+                'habit_type' => $habitUser->habit_type,
+                'is_active' => $habitInsightRepository->isHabitActive($habitId, Auth::user()->id),
+            ],
+        ]);
     }
 
     /**

@@ -129,7 +129,7 @@ class HabitInsightService
      * @param string|null $selectedDate (Y-m-d format, defaults to today)
      * @return array
      */
-    public function getSingleHabitSummary(HabitUser $habitUser, string $timezone, HabitService $service, HabitInsightRepository $insightRepository, string $selectedDate = null): array
+    public function getSingleHabitSummary(HabitUser $habitUser, string $page, string $timezone, HabitService $service, HabitInsightRepository $insightRepository, string $selectedDate = null): array
     {
         $date = $selectedDate 
             ? Carbon::createFromFormat('Y-m-d', $selectedDate, $timezone)->startOfDay()
@@ -147,13 +147,13 @@ class HabitInsightService
         ];
 
         $color = $habitUser->color_index ?? '#ffffff';
-        $summary = $this->generateDailySummariesForUser($habitUser, $habitUser->user_id, $timezone, $dateRanges, $color, $service, $insightRepository);
+        $summary = $this->generateDailySummariesForUser($habitUser, $habitUser->user_id, $page, $timezone, $dateRanges, $color, $service, $insightRepository);
 
         // Handle children if they exist
         if ($habitUser->children && $habitUser->children->count() > 0) {
             $summary['children'] = [];
             foreach ($habitUser->children as $child) {
-                $summary['children'][] = $this->generateDailySummariesForUser($child, $habitUser->user_id, $timezone, $dateRanges, $color, $service, $insightRepository);
+                $summary['children'][] = $this->generateDailySummariesForUser($child, $habitUser->user_id, $page, $timezone, $dateRanges, $color, $service, $insightRepository);
             }
         }
 
@@ -161,7 +161,7 @@ class HabitInsightService
     }
 
 
-    public function generateDailySummariesForUser(HabitUser $habitUser, int $userId, string $timezone, array $dateRanges, string $color, HabitService $service, HabitInsightRepository $insightRepository)
+    public function generateDailySummariesForUser(HabitUser $habitUser, int $userId, string $page, string $timezone, array $dateRanges, string $color, HabitService $service, HabitInsightRepository $insightRepository)
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
         $time = $this->fetchTotalDurationBasedOnStreakType($habitUser, $userId, $timezone, $habitIds, $dateRanges, $insightRepository);
@@ -170,6 +170,9 @@ class HabitInsightService
 
         $currentValue = $handler->formatValue($time);
         $goalValue = $handler->formatGoal($habitUser);
+
+        $isActive = $insightRepository->isHabitActive($habitUser->habit_id, $userId);
+        $activeElapsedSeconds = $isActive ? $insightRepository->getActiveHabitElapsedSeconds($habitUser->habit_id, $userId, $timezone) : null;
 
         return [
             'id' => $habitUser->habit_id,
@@ -182,7 +185,9 @@ class HabitInsightService
             'goal' => $goalValue,
             'color_index' => $color,
             'goal_met' => $time > $habitUser->streak_goal,
-            'is_active' => $insightRepository->isHabitActive($habitUser->habit_id, $userId),
+            'is_active' => $isActive,
+            'active_elapsed_seconds' => $activeElapsedSeconds,
+            'url' => $page === 'insights' ? route('habits.show', $habitUser->habit_id) : route('habits.add-transaction', $habitUser->habit_id),
         ];
     }
 

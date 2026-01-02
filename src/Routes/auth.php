@@ -7,13 +7,19 @@ use NickKlein\Habits\Controllers\HabitController;
 
 Route::middleware(['web', 'auth'])->group(function() {
     Route::get('/habit', [HabitController::class, 'index'])->name('habits.index');
-    Route::get('/api/habits/{habitUserId}/summary', [HabitController::class, 'getHabitUserSummary'])->name('api.habits.summary');
+    Route::get('/api/habits/{habitUserId}/{page}/summary', [HabitController::class, 'getHabitUserSummary'])->name('api.habits.summary');
     Route::get('/habit/insights', [HabitInsightController::class, 'index'])->name('habits.insights');
-    Route::get('/api/habits/insights/{habitUserId}/summary', [HabitInsightController::class, 'getHabitUserSummary'])->name('api.habits.insights.summary');
     Route::get('/habit/show/{habitId}', [HabitInsightController::class, 'show'])->name('habits.show');
     Route::get('/habit/show/{habitId}/charts', [HabitInsightController::class, 'getChartInformation'])->name('habits.show.get-habit-information');
     Route::get('/habits/show/yearly-comparison/{habitId}', [HabitInsightController::class, 'getYearlyComparisonChartForHabit'])->name('habits.yearly-comparison.habit');
-    
+
+    // Add transaction
+    Route::get('/habit/add-transaction/{habitId}', [HabitController::class, 'addTransaction'])->name('habits.add-transaction');
+
+    // API endpoints for quick transaction adds (AJAX)
+    Route::post('/api/habit/{habitId}/timer/{status}', [HabitTimeController::class, 'toggleTimer'])->name('api.habits.timer.toggle');
+    Route::post('/api/habit/{habitId}/value', [HabitTimeController::class, 'saveValue'])->name('api.habits.save-value');
+
     // Create new habits
     Route::get('/habit/create', [HabitController::class, 'create'])->name('habits.create');
     Route::post('/habit/store', [HabitController::class, 'store'])->name('habits.store');

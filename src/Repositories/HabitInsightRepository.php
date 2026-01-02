@@ -144,6 +144,36 @@ class HabitInsightRepository
     }
 
     /**
+     * Get active habit transaction elapsed seconds
+     *
+     * @param integer $habitId
+     * @param integer $userId
+     * @param string $timezone
+     * @return int|null
+     */
+    public function getActiveHabitElapsedSeconds(int $habitId, int $userId, string $timezone = 'UTC'): ?int
+    {
+        $habitTime = HabitTime::where('habit_id', $habitId)
+            ->where('user_id', $userId)
+            ->whereNotNull('start_time')
+            ->whereNull('end_time')
+            ->first();
+
+        if (!$habitTime) {
+            return null;
+        }
+
+        // start_time is stored in UTC, so parse it as UTC then get current time in user's timezone
+        $startTime = Carbon::parse($habitTime->start_time, 'UTC');
+        $now = Carbon::now($timezone);
+
+        // Convert both to UTC for accurate comparison
+        $elapsedSeconds = $now->diffInSeconds($startTime);
+
+        return $elapsedSeconds;
+    }
+
+    /**
      * Checks if habit is streakable
      *
      * @param integer $habitId

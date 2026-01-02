@@ -35,33 +35,6 @@ class HabitInsightController extends Controller
         ]);
     }
 
-    /**
-     * Get individual habit user summary for AJAX calls
-     *
-     * @param integer $habitUserId
-     * @param HabitService $habitService
-     * @param HabitInsightService $habitInsightService
-     * @param HabitInsightRepository $habitInsightRepository
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getHabitUserSummary(int $habitUserId, Request $request, HabitService $habitService, HabitInsightService $habitInsightService, HabitInsightRepository $habitInsightRepository)
-    {
-        $habitUser = HabitUser::with(['habit', 'children'])
-            ->where('id', $habitUserId)
-            ->where('user_id', Auth::user()->id)
-            ->first();
-
-        if (!$habitUser) {
-            return response()->json(['error' => 'Habit not found'], 404);
-        }
-
-        // Get date from query parameter, default to today
-        $selectedDate = $request->query('date', now(Auth::user()->timezone)->toDateString());
-
-        $summary = $habitInsightService->getSingleHabitSummary($habitUser, Auth::user()->timezone, $habitService, $habitInsightRepository, $selectedDate);
-
-        return response()->json($summary);
-    }
 
     /**
      * Show habit insights

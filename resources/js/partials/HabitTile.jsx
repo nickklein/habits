@@ -7,7 +7,7 @@ import { getTextColor } from '@/Helpers/Colors';
 
 const INSIGHT_TYPE = 'insights';
 
-export default function HabitTile({ habitUserId, selectedDate, type }) {
+export default function HabitTile({ habitUserId, selectedDate, type, ajaxUrl}) {
     const [habitData, setHabitData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -22,9 +22,7 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
             setLoading(true);
             setError(null);
             
-            const url = fetchRoute();
-            
-            const response = await fetch(url);
+            const response = await fetch(ajaxUrl);
             
             if (!response.ok) {
                 throw new Error('Failed to load habit data');
@@ -42,18 +40,6 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
     const toggleChildren = (e) => {
         e.preventDefault();
         setChildrenOpen(!childrenOpen);
-    };
-
-    // TODO: Code smell. All this logic needs to go up a level
-    const fetchRoute = () => {
-
-        if (type === INSIGHT_TYPE) {
-            return route('api.habits.insights.summary', habitUserId)
-        }
-        const baseUrl = route('api.habits.summary', habitUserId);
-        return selectedDate 
-            ? `${baseUrl}?date=${selectedDate}`
-            : baseUrl;
     };
 
     if (loading) {
@@ -108,7 +94,7 @@ export default function HabitTile({ habitUserId, selectedDate, type }) {
                         </div>
                         <div>
                             <h3 className="text-xl font-semibold" style={{ color: textColor }}>
-                                <Link href={route('habits.show', habitData.id)}>
+                                <Link href={habitData.url}>
                                     {habitData.name}
                                     {habitData.is_active && (
                                         <span className="ml-2 text-green-600 dark:text-green-400 text-sm font-medium">In Progress</span>

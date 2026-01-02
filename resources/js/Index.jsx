@@ -7,7 +7,7 @@ import HabitTile from './partials/HabitTile';
 
 export default function Index(props) {
     const {links} = usePage().props;
-    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(props.todaysDate);
 
     return (
         <AuthenticatedLayout
@@ -19,7 +19,13 @@ export default function Index(props) {
             <div className={"max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8"}>
                 <DailyCalendar onDateSelect={setSelectedDate} />
                 {props.habitUserIds && props.habitUserIds.map((habitUserId, index) => (
-                    <HabitTile key={habitUserId} habitUserId={habitUserId} selectedDate={selectedDate} type={'home'} />
+                    <HabitTile 
+                        key={habitUserId} 
+                        habitUserId={habitUserId} 
+                        selectedDate={selectedDate} 
+                        type='home'
+                        ajaxUrl={route('api.habits.summary', {'habitUserId': habitUserId, 'page': 'home'})+`?date=${selectedDate}`}
+                    />
                 ))}
             </div>
         </AuthenticatedLayout>

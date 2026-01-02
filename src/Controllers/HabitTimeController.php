@@ -228,4 +228,61 @@ class HabitTimeController extends Controller
 
         return response()->json($response);
     }
+
+    /**
+     * Toggle timer for a habit (authenticated AJAX endpoint)
+     *
+     * @param int $habitId
+     * @param string $status
+     * @return JsonResponse
+     */
+    public function toggleTimer(int $habitId, string $status): JsonResponse
+    {
+        $response = $this->habitService->startOrEndTimer($habitId, Auth::user()->id, Auth::user()->timezone, $status);
+
+        if ($response) {
+            return response()->json([
+                'status' => 'success',
+                'message' => $status === 'on' ? 'Timer started' : 'Timer stopped and saved',
+            ], Response::HTTP_OK);
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Failed to toggle timer',
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Save a value for a habit (authenticated AJAX endpoint)
+     *
+     * @param int $habitId
+     * @param \Illuminate\Http\Request $request
+     * @return JsonResponse
+     */
+    public function saveValue(int $habitId, \Illuminate\Http\Request $request): JsonResponse
+    {
+        $value = $request->input('value');
+
+        if (!$value || $value < 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid value',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
+        $response = $this->habitService->saveHabitTransaction($habitId, Auth::user()->id, Auth::user()->timezone, $value);
+
+        if ($response) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Value saved successfully',
+            ], Response::HTTP_OK);
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Failed to save value',
+        ], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
 }

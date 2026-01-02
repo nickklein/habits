@@ -14,7 +14,12 @@ export default function Index(props) {
             <Head title="Habits" />
             <div className={"max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8"}>
                 {props.habitUserIds && props.habitUserIds.map((habitUserId, index) => (
-                    <HabitTile key={habitUserId} habitUserId={habitUserId} type='insights' />
+                    <HabitTile 
+                        key={habitUserId} 
+                        habitUserId={habitUserId} 
+                        type='insights'
+                        ajaxUrl={route('api.habits.summary', {'habitUserId': habitUserId, 'page': 'insights'})}
+                    />
                 ))}
             </div>
         </AuthenticatedLayout>
