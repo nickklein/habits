@@ -71,7 +71,6 @@ export default function HabitTile({ habitUserId, selectedDate, type, ajaxUrl}) {
 
     const shouldShowParent = () => {
         if (type === INSIGHT_TYPE) return true;
-        if (!habitData.goal_met) return true;
 
         if (habitData.children && habitData.children.length > 0) {
             return !habitData.children.every(child => child.goal_met);
