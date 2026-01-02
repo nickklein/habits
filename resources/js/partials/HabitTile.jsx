@@ -8,7 +8,7 @@ import { getTextColor } from '@/Helpers/Colors';
 const INSIGHT_TYPE = 'insights';
 
 export default function HabitTile({ habitUserId, selectedDate, type, habitData, error, loading }) {
-    const [childrenOpen, setChildrenOpen] = useState(true);
+    const [childrenOpen, setChildrenOpen] = useState(false);
 
     const toggleChildren = (e) => {
         e.preventDefault();

@@ -164,11 +164,11 @@ class HabitInsightService
     public function generateDailySummariesForUser(HabitUser $habitUser, int $userId, string $page, string $timezone, array $dateRanges, string $color, HabitService $service, HabitInsightRepository $insightRepository)
     {
         $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
-        $time = $this->fetchTotalDurationBasedOnStreakType($habitUser, $userId, $timezone, $habitIds, $dateRanges, $insightRepository);
+        $unitValue = $this->fetchTotalDurationBasedOnStreakType($habitUser, $userId, $timezone, $habitIds, $dateRanges, $insightRepository);
 
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
-        $currentValue = $handler->formatValue($time);
+        $currentValue = $handler->formatValue($unitValue);
         $goalValue = $handler->formatGoal($habitUser);
 
         $isActive = $insightRepository->isHabitActive($habitUser->habit_id, $userId);
@@ -184,7 +184,7 @@ class HabitInsightService
             ],
             'goal' => $goalValue,
             'color_index' => $color,
-            'goal_met' => $time > $habitUser->streak_goal,
+            'goal_met' => $unitValue >= $habitUser->streak_goal,
             'is_active' => $isActive,
             'active_elapsed_seconds' => $activeElapsedSeconds,
             'url' => $page === 'insights' ? route('habits.show', $habitUser->habit_id) : route('habits.add-transaction', $habitUser->habit_id),
