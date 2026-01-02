@@ -43,7 +43,7 @@ class RunSeederCommand extends Command
     public function handle()
     {
         // Add habits
-        $this->habitSeeder->run(8);
+        $this->habitSeeder->run(10);
 
 
         // connect relationships
