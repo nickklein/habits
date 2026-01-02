@@ -75,7 +75,7 @@ function TimeHabitTimer({ habitUser }) {
 
     return (
         <div className="flex flex-col items-center justify-center py-12">
-            <div className="text-center mb-8">
+            <div className="flex flex-col items-center mb-8">
                 <div className={`text-7xl font-mono font-bold mb-8 ${isRunning ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
                     {formatTime(elapsedTime)}
                 </div>
