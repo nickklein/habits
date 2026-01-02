@@ -135,7 +135,7 @@ export default function HabitTile({ habitUserId, selectedDate, type, ajaxUrl}) {
                             </div>
                             <div>
                                 <h3 className="text-xl font-semibold" style={{ color: textColor }}>
-                                    <Link href={route('habits.show', child.id)}>
+                                    <Link href={child.url}>
                                         {child.name}
                                         {child.is_active && (
                                             <span className="ml-2 text-green-600 dark:text-green-400 text-sm font-medium">In Progress</span>
