@@ -56,8 +56,9 @@ class TagsRepository extends BaseRepository
      */
     public function findHabitTimesTag(int $habitTimeId, int $tagId, int $userId): HabitTimesTag
     {
-        return HabitTimesTag::where('habit_time_id', $habitTimeId)
+        return HabitTimesTag::select('habit_times_tags.*')
             ->join('habit_transactions', 'habit_transactions.id', '=', 'habit_times_tags.habit_time_id')
+            ->where('habit_time_id', $habitTimeId)
             ->where('habit_transactions.user_id', $userId)
             ->where('tag_id', $tagId)
             ->first();
