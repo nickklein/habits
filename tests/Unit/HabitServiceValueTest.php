@@ -2,6 +2,7 @@
 
 namespace NickKlein\Habits\Tests;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use NickKlein\Habits\Models\HabitTime;
 use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Services\HabitService;
@@ -34,8 +35,8 @@ class HabitServiceValueTest extends TestCase
         $result = $this->habitService->startOrEndTimer($habitId, $userId, 'UTC', 'on');
 
         // Assert
-        $this->assertTrue($result);
-        
+        $this->assertIsInt($result);
+
         // Check that a habit time record was created
         $habitTime = HabitTime::where('user_id', $userId)
             ->where('habit_id', $habitId)
@@ -73,8 +74,8 @@ class HabitServiceValueTest extends TestCase
         $result = $this->habitService->startOrEndTimer($habitId, $userId, 'UTC', 'off');
 
         // Assert
-        $this->assertTrue($result);
-        
+        $this->assertIsInt($result);
+
         // Check that the habit time record was ended
         $habitTime->refresh();
         $this->assertNotNull($habitTime->end_time);
@@ -83,12 +84,12 @@ class HabitServiceValueTest extends TestCase
     }
 
     /** @test */
-    public function it_returns_false_when_ending_timer_with_no_active_timer()
+    public function it_throws_exception_when_ending_timer_with_no_active_timer()
     {
         // Arrange
         $userId = 1;
         $habitId = 1;
-        
+
         // Create a time-based habit user
         $habitUser = HabitUser::where('user_id', $userId)->where('habit_id', $habitId)->first();
         $habitUser->habit_type = 'time';
@@ -97,25 +98,25 @@ class HabitServiceValueTest extends TestCase
         // Ensure no active timers exist
         HabitTime::where('user_id', $userId)->where('habit_id', $habitId)->delete();
 
-        // Act
-        $result = $this->habitService->startOrEndTimer($habitId, $userId, 'UTC', 'off');
-
         // Assert
-        $this->assertFalse($result);
+        $this->expectException(ModelNotFoundException::class);
+
+        // Act
+        $this->habitService->startOrEndTimer($habitId, $userId, 'UTC', 'off');
     }
 
     /** @test */
-    public function it_returns_false_when_habit_user_not_found_for_start_or_end_timer()
+    public function it_throws_exception_when_habit_user_not_found_for_start_or_end_timer()
     {
         // Arrange
         $userId = 999; // Non-existent user
         $habitId = 999; // Non-existent habit
 
-        // Act
-        $result = $this->habitService->startOrEndTimer($habitId, $userId, 'UTC', 'on');
-
         // Assert
-        $this->assertFalse($result);
+        $this->expectException(ModelNotFoundException::class);
+
+        // Act
+        $this->habitService->startOrEndTimer($habitId, $userId, 'UTC', 'on');
     }
 
     /** @test */
@@ -135,8 +136,8 @@ class HabitServiceValueTest extends TestCase
         $result = $this->habitService->saveHabitTransaction($habitId, $userId, 'UTC', $value);
 
         // Assert
-        $this->assertTrue($result);
-        
+        $this->assertIsInt($result);
+
         // Check that a habit time record was created
         $habitTime = HabitTime::where('user_id', $userId)
             ->where('habit_id', $habitId)
@@ -164,8 +165,8 @@ class HabitServiceValueTest extends TestCase
         $result = $this->habitService->saveHabitTransaction($habitId, $userId, 'UTC', $value);
 
         // Assert
-        $this->assertTrue($result);
-        
+        $this->assertIsInt($result);
+
         // Check that a habit time record was created
         $habitTime = HabitTime::where('user_id', $userId)
             ->where('habit_id', $habitId)
@@ -177,18 +178,18 @@ class HabitServiceValueTest extends TestCase
     }
 
     /** @test */
-    public function it_returns_false_when_habit_user_not_found_for_save_transaction()
+    public function it_throws_exception_when_habit_user_not_found_for_save_transaction()
     {
         // Arrange
         $userId = 999; // Non-existent user
         $habitId = 999; // Non-existent habit
         $value = '5';
 
-        // Act
-        $result = $this->habitService->saveHabitTransaction($habitId, $userId, 'UTC', $value);
-
         // Assert
-        $this->assertFalse($result);
+        $this->expectException(ModelNotFoundException::class);
+
+        // Act
+        $this->habitService->saveHabitTransaction($habitId, $userId, 'UTC', $value);
     }
 
     /** @test */
