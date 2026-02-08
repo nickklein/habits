@@ -31,7 +31,7 @@ function AddTransaction(props) {
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 shadow sm:rounded-lg overflow-hidden">
-                        <AddTransactionForm habitUser={habitUser} />
+                        <AddTransactionForm habitUser={habitUser} popularTags={props.popularTags || []} />
                     </div>
                 </div>
             </div>

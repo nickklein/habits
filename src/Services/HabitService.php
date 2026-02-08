@@ -124,15 +124,13 @@ class HabitService
      * @return boolean
      *
      */
-    public function startOrEndTimer(int $habitId, int $userId, string $timezone = 'UTC', string $status): bool
+    public function startOrEndTimer(int $habitId, int $userId, string $timezone = 'UTC', string $status): int
     {
         $habitUser = HabitUser::on($this->getDatabaseConnection())
             ->where('habit_id', $habitId)
             ->where('user_id', $userId)
-            ->first();
-        if (!$habitUser) {
-            return false;
-        }
+            ->firstOrFail();
+
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
         $fields['status'] = $status;
@@ -151,12 +149,10 @@ class HabitService
      * @return boolean
      *
      */
-    public function saveHabitTransaction(int $habitId, int $userId, string $timezone = 'UTC', string $value)
+    public function saveHabitTransaction(int $habitId, int $userId, string $timezone = 'UTC', string $value): int
     {
-        $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->first();
-        if (!$habitUser) {
-            return false;
-        }
+        $habitUser = HabitUser::where('habit_id', $habitId)->where('user_id', $userId)->firstOrFail();
+
         $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
 
         return $handler->recordValue($habitId, $userId, $timezone, ['value' => $value]);

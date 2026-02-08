@@ -160,7 +160,7 @@ class MLHabitHandler implements HabitTypeInterface
      * @return bool
      */
 
-    public function recordValue(int $habitId, int $userId, string $timezone = 'UTC', array $fields): bool
+    public function recordValue(int $habitId, int $userId, string $timezone = 'UTC', array $fields): int
     {
         $habitTime = new HabitTime;
         $this->setModelConnection($habitTime);
@@ -169,8 +169,9 @@ class MLHabitHandler implements HabitTypeInterface
         $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
         $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
         $habitTime->duration = $fields['value'] ?? 1;
+        $habitTime->save();
 
-        return $habitTime->save();
+        return $habitTime->id;
     }
 
     public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', array $fields): bool

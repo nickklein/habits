@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use NickKlein\Habits\Models\HabitUser;
 use NickKlein\Habits\Repositories\HabitInsightRepository;
 use NickKlein\Habits\Services\HabitInsightService;
+use NickKlein\Tags\Models\Tags;
 
 class HabitController extends Controller
 {
@@ -90,6 +91,15 @@ class HabitController extends Controller
             abort(404, 'Habit not found');
         }
 
+        $popularTags = Tags::select('tags.tag_name')
+            ->join('habit_times_tags', 'tags.tag_id', '=', 'habit_times_tags.tag_id')
+            ->join('habit_transactions', 'habit_times_tags.habit_time_id', '=', 'habit_transactions.id')
+            ->where('habit_transactions.habit_id', $habitId)
+            ->where('habit_transactions.user_id', Auth::user()->id)
+            ->distinct()
+            ->pluck('tag_name')
+            ->toArray();
+
         return Inertia::render('Habits/AddTransaction', [
             'habitUser' => [
                 'id' => $habitUser->id,
@@ -100,6 +110,7 @@ class HabitController extends Controller
                 'habit_type' => $habitUser->habit_type,
                 'is_active' => $habitInsightRepository->isHabitActive($habitId, Auth::user()->id),
             ],
+            'popularTags' => $popularTags,
         ]);
     }
 

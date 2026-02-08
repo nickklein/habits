@@ -156,7 +156,7 @@ class TimeHabitHandler implements HabitTypeInterface
      * @param array $fields ('status')
      * @return bool
      */
-    public function recordValue(int $habitId, int $userId, string $timezone = 'UTC', array $fields): bool
+    public function recordValue(int $habitId, int $userId, string $timezone = 'UTC', array $fields): int
     {
         if ($fields['status'] === 'on') {
             $habitTime = new HabitTime;
@@ -166,8 +166,9 @@ class TimeHabitHandler implements HabitTypeInterface
             // Convert current user-local time to UTC
             $habitTime->start_time = Carbon::now($timezone)->timezone('UTC');
             $habitTime->end_time = null;
+            $habitTime->save();
 
-            return $habitTime->save();
+            return $habitTime->id;
         }
 
         $habitTime = HabitTime::on($this->getDatabaseConnection())
@@ -175,16 +176,13 @@ class TimeHabitHandler implements HabitTypeInterface
             ->where('user_id', $userId)
             ->whereNotNull('start_time')
             ->whereNull('end_time')
-            ->first();
-
-        if (!$habitTime) {
-            return false;
-        }
+            ->firstOrFail();
 
         $habitTime->end_time = Carbon::now($timezone)->timezone('UTC');
         $habitTime->duration = Carbon::parse($habitTime->start_time)->diffInSeconds($habitTime->end_time);
+        $habitTime->save();
 
-        return $habitTime->save();
+        return $habitTime->id;
     }
 
     public function updateValue(int $habitTimeId, int $userId, string $timezone = 'UTC', array $fields): bool

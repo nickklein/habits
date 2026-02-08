@@ -3,13 +3,16 @@ import { router, usePage } from '@inertiajs/react';
 import { FaPlay, FaPause } from 'react-icons/fa';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
+import TagsInput from '@/Components/TagsInput';
 
-function TimeHabitTimer({ habitUser }) {
+function TimeHabitTimer({ habitUser, popularTags = [] }) {
     const { auth } = usePage().props;
     const [isRunning, setIsRunning] = useState(habitUser.is_active);
     const [elapsedTime, setElapsedTime] = useState(0);
     const [loading, setLoading] = useState(false);
     const intervalRef = useRef(null);
+    const [tags, setTags] = useState([]);
+    const [newTag, setNewTag] = useState('');
 
     useEffect(() => {
         if (isRunning) {
@@ -52,11 +55,33 @@ function TimeHabitTimer({ habitUser }) {
         return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
+    const handleAddTag = (event) => {
+        event.preventDefault();
+        if (newTag) {
+            setTags([...tags, newTag]);
+            setNewTag('');
+        }
+    };
+
+    const handleRemoveTag = (index) => {
+        setTags(tags.filter((_, i) => i !== index));
+    };
+
     const handleToggleTimer = () => {
         setLoading(true);
         const status = isRunning ? 'off' : 'on';
 
         axios.post(route('api.habits.timer.toggle', { habitId: habitUser.habit_id, status: status }))
+            .then(response => {
+                if (isRunning && tags.length > 0) {
+                    const habitTimeId = response.data.habitTimeId;
+                    const tagPromises = tags.map(tag =>
+                        axios.post(route('habits.transactions.edit.add-tag', { habitTimesId: habitTimeId }), { tagName: tag })
+                    );
+                    return Promise.all(tagPromises).then(() => response);
+                }
+                return response;
+            })
             .then(response => {
                 setIsRunning(!isRunning);
                 if (!isRunning) {
@@ -102,12 +127,34 @@ function TimeHabitTimer({ habitUser }) {
                 </div>
             </div>
 
-            <div className="mt-8">
+            {isRunning && (
+                <div className="mb-8 max-w-md mx-auto w-full">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Tags</div>
+                    <TagsInput
+                        selected={tags}
+                        handleAddTag={handleAddTag}
+                        handleRemoveTag={handleRemoveTag}
+                        setInpuTag={(e) => setNewTag(e.target.value)}
+                        value={newTag}
+                        popularTags={popularTags}
+                        onPopularTagClick={(tag) => setTags([...tags, tag])}
+                    />
+                </div>
+            )}
+
+            <div className="mt-8 flex gap-4">
                 <SecondaryButton
                     onClick={() => router.visit(route('habits.index'))}
                     disabled={loading}
                 >
                     Back to Habits
+                </SecondaryButton>
+
+                <SecondaryButton
+                    onClick={() => router.visit(route('habits.show', { habitId: habitUser.habit_id }))}
+                    disabled={loading}
+                >
+                    Go to Insights
                 </SecondaryButton>
             </div>
         </div>

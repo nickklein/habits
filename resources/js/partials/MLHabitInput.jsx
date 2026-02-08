@@ -4,12 +4,15 @@ import { FaCheck } from 'react-icons/fa';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
 import TextInput from '@/Components/TextInput';
+import TagsInput from '@/Components/TagsInput';
 
-function MLHabitInput({ habitUser }) {
+function MLHabitInput({ habitUser, popularTags = [] }) {
     const { auth } = usePage().props;
     const [volume, setVolume] = useState(250);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [tags, setTags] = useState([]);
+    const [newTag, setNewTag] = useState('');
 
     const formatVolume = (ml) => {
         if (ml >= 1000) {
@@ -22,6 +25,18 @@ function MLHabitInput({ habitUser }) {
         setVolume(value);
     };
 
+    const handleAddTag = (event) => {
+        event.preventDefault();
+        if (newTag) {
+            setTags([...tags, newTag]);
+            setNewTag('');
+        }
+    };
+
+    const handleRemoveTag = (index) => {
+        setTags(tags.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = () => {
         if (volume < 1) return;
 
@@ -29,6 +44,13 @@ function MLHabitInput({ habitUser }) {
 
         axios.post(route('api.habits.save-value', { habitId: habitUser.habit_id }), { value: volume })
             .then(response => {
+                const habitTimeId = response.data.habitTimeId;
+                const tagPromises = tags.map(tag =>
+                    axios.post(route('habits.transactions.edit.add-tag', { habitTimesId: habitTimeId }), { tagName: tag })
+                );
+                return Promise.all(tagPromises);
+            })
+            .then(() => {
                 setSuccess(true);
                 setTimeout(() => {
                     router.visit(route('habits.index'));
@@ -149,6 +171,19 @@ function MLHabitInput({ habitUser }) {
                     </div>
                 </div>
 
+                <div className="mb-8 max-w-md mx-auto w-full">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">Tags</div>
+                    <TagsInput
+                        selected={tags}
+                        handleAddTag={handleAddTag}
+                        handleRemoveTag={handleRemoveTag}
+                        setInpuTag={(e) => setNewTag(e.target.value)}
+                        value={newTag}
+                        popularTags={popularTags}
+                        onPopularTagClick={(tag) => setTags([...tags, tag])}
+                    />
+                </div>
+
                 <div className="flex gap-4 justify-center">
                     <PrimaryButton
                         onClick={handleSubmit}
@@ -170,7 +205,14 @@ function MLHabitInput({ habitUser }) {
                         onClick={() => router.visit(route('habits.index'))}
                         disabled={loading}
                     >
-                        Cancel
+                        Back to Habits
+                    </SecondaryButton>
+
+                    <SecondaryButton
+                        onClick={() => router.visit(route('habits.show', { habitId: habitUser.habit_id }))}
+                        disabled={loading}
+                    >
+                        Go to Insights
                     </SecondaryButton>
                 </div>
             </div>
