@@ -62,6 +62,7 @@ class HabitInsightController extends Controller
             'monthlySummaryHighlights' => $habitInsightService->getMonthlySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
             'yearlySummaryHighlights' => $habitInsightService->getYearlySummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
             'totalSummaryHighlights' => $habitInsightService->getTotalSummaryHighlights($habitsUser, Auth::user()->timezone, $habitService, $habitInsightRepository),
+            'tagBreakdown' => $habitInsightService->getTagBreakdown($habitsUser, Auth::user()->timezone, $habitInsightRepository),
         ]);
     }
 

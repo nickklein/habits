@@ -6,6 +6,7 @@ import SimpleBarChart from '../partials/SimpleBarChart';
 import YearlyComparisonChart from '../partials/YearlyComparisonChart';
 import { getTextColor, getBackgroundColor } from '@/Helpers/Colors'; // import helper functions
 import StreakStats from '../partials/StreaksStats';
+import TagBreakdownChart from '../partials/TagBreakdownChart';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useState } from 'react';
 
@@ -53,6 +54,7 @@ export default function Index(props) {
 
                 <SimpleBarChart data={props.weeklyCharts} color={color} habitId={props.habit.habit.habit_id} />
                 <YearlyComparisonChart habitId={props.habit.habit.habit_id} color={color} />
+                <TagBreakdownChart data={props.tagBreakdown} color={color} />
 
                 <div className="py-2">
                     <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-5">Daily Highlights</h2>

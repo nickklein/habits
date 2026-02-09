@@ -227,6 +227,26 @@ class HabitInsightRepository
         }
     }
     /**
+     * Get tag breakdown for a habit (total duration per tag)
+     * Transactions without tags are grouped as "Uncategorized"
+     */
+    public function getTagBreakdownByHabitId(int $userId, array $habitIds, Carbon $startDate, Carbon $endDate): \Illuminate\Support\Collection
+    {
+        return HabitTime::leftJoin('habit_times_tags', 'habit_transactions.id', '=', 'habit_times_tags.habit_time_id')
+            ->leftJoin('tags', 'habit_times_tags.tag_id', '=', 'tags.tag_id')
+            ->where('habit_transactions.user_id', $userId)
+            ->whereIn('habit_transactions.habit_id', $habitIds)
+            ->whereBetween('habit_transactions.start_time', [$startDate, $endDate])
+            ->select(
+                DB::raw('COALESCE(tags.tag_name, "Uncategorized") as tag_name'),
+                DB::raw('SUM(habit_transactions.duration) as total_duration')
+            )
+            ->groupBy('tags.tag_name')
+            ->orderByDesc('total_duration')
+            ->get();
+    }
+
+    /**
     * Validate timezone to ensure it's safe to use in queries
     *
     * @param string $timezone

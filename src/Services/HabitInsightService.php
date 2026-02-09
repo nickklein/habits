@@ -827,6 +827,27 @@ class HabitInsightService
         return $totals->sum('total_duration');
     }
 
+    public function getTagBreakdown(HabitUser $habitUser, string $timezone, HabitInsightRepository $habitInsightRepository): array
+    {
+        $habitIds = $this->fetchHabitIdsBasedOnHierarchy($habitUser);
+
+        $startOfYear = Carbon::now($timezone)->startOfYear()->startOfDay()->setTimezone('UTC');
+        $endOfYear = Carbon::now($timezone)->endOfYear()->endOfDay()->setTimezone('UTC');
+
+        $breakdown = $habitInsightRepository->getTagBreakdownByHabitId($habitUser->user_id, $habitIds, $startOfYear, $endOfYear);
+
+        $handler = $this->habitTypeFactory->getHandler($habitUser->habit_type);
+
+        return $breakdown->map(function ($row) use ($handler) {
+            $formatted = $handler->formatValue($row->total_duration);
+            return [
+                'name' => $row->tag_name,
+                'value' => (float) $row->total_duration,
+                'formatted' => $formatted['value'] . ' ' . $formatted['unit_full'],
+            ];
+        })->values()->toArray();
+    }
+
     public function yearlyComparisonChartForHabit(int $habitId, int $userId, string $timezone, HabitInsightRepository $insightRepository): array
     {
         $currentYear = Carbon::now($timezone)->year;
